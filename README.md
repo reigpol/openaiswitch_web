@@ -5,14 +5,14 @@
 </p>
 
 <p align="center">
-  <a href="https://reigpol.github.io/openaiswitch_web/"><img src="https://img.shields.io/badge/Live-GitHub%20Pages-22A447?style=for-the-badge" alt="Live site"></a>
+  <a href="https://www.openaiswitch.com"><img src="https://img.shields.io/badge/Live-openaiswitch.com-22A447?style=for-the-badge" alt="Live site"></a>
   <a href="https://github.com/reigpol/openaiswitch"><img src="https://img.shields.io/badge/Product-openaiswitch-00ADD8?style=for-the-badge" alt="Product repo"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-555555?style=for-the-badge" alt="MIT License"></a>
 </p>
 
 Marketing site for **[openaiswitch](https://github.com/reigpol/openaiswitch)** — switch AI coding CLIs without losing context. The CLI is `ais`.
 
-**Live:** [reigpol.github.io/openaiswitch_web](https://reigpol.github.io/openaiswitch_web/)
+**Live:** [www.openaiswitch.com](https://www.openaiswitch.com)
 
 ## What’s here
 
@@ -36,12 +36,8 @@ Any static server works; open `index.html` via HTTP so assets and scripts load c
 
 ## Deploy
 
-GitHub Pages from branch **`main`**, folder **`/` (root)**  
-→ [Settings → Pages](https://github.com/reigpol/openaiswitch_web/settings/pages)
-
-After the first deploy, the site is at:
-
-https://reigpol.github.io/openaiswitch_web/
+Static files at the repo root. Production is **[www.openaiswitch.com](https://www.openaiswitch.com)**.  
+You can also preview from GitHub Pages (`main` / `/`) if that is enabled on the repo.
 
 ## Related
 
