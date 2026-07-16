@@ -506,34 +506,52 @@ html[data-theme="light"] .site-topbar {
   overflow: visible;
 }
 
-/* Soft brand wash under the dots — keeps the aura warm without noise */
+/* Soft brand wash under the dots — slow breath keeps the field alive */
 .hero-glow {
   position: absolute;
-  inset: -6% -2% 10%;
+  inset: -8% -4% 8%;
   z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(
-      ellipse 48% 52% at 50% 36%,
-      color-mix(in srgb, var(--accent-primary) 12%, transparent),
+      ellipse 52% 56% at 50% 34%,
+      color-mix(in srgb, var(--accent-primary) 14%, transparent),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 36% 40% at 18% 50%,
+      color-mix(in srgb, var(--accent-primary) 9%, transparent),
       transparent 72%
     ),
     radial-gradient(
-      ellipse 34% 38% at 22% 48%,
-      color-mix(in srgb, var(--accent-primary) 8%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 32% 36% at 80% 52%,
-      color-mix(in srgb, var(--accent-secondary) 7%, transparent),
-      transparent 72%
+      ellipse 34% 38% at 84% 48%,
+      color-mix(in srgb, var(--accent-secondary) 9%, transparent),
+      transparent 74%
     );
-  filter: blur(4px);
-  opacity: 0.85;
+  filter: blur(6px);
+  opacity: 0.9;
+  animation: hero-glow-breathe 7.5s var(--ease-out) infinite alternate;
 }
 
 html[data-theme="light"] .hero-glow {
-  opacity: 0.5;
+  opacity: 0.48;
+}
+
+@keyframes hero-glow-breathe {
+  from {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  to {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-glow {
+    animation: none;
+  }
 }
 
 .hero-content {
@@ -567,19 +585,21 @@ html[data-theme="light"] .hero-glow {
   z-index: 2;
   width: 100%;
   border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-page) 82%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg-page) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent-primary) 10%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 12%, transparent),
+    0 0 40px -12px color-mix(in srgb, var(--accent-primary) 22%, transparent),
     var(--shadow-term);
   overflow: hidden;
   transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 html[data-theme="light"] .hero-term {
-  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent-primary) 14%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 16%, transparent),
+    0 0 36px -14px color-mix(in srgb, var(--accent-primary) 18%, transparent),
     var(--shadow-term);
 }
 
