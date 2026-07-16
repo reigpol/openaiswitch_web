@@ -195,23 +195,26 @@ button {
 /* Theme toggle — sun/moon morph (OpenClaw technique: CSS r / cx / cy) */
 
 .theme-toggle {
-  position: fixed;
-  top: 14px;
-  right: 28px;
-  z-index: 2100; /* above grain overlay */
-  padding: var(--space-1);
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
   border: none;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .theme-toggle:hover {
   color: var(--text-primary);
+  background: var(--surface-interactive);
 }
 
 .theme-toggle:focus-visible,
@@ -269,13 +272,6 @@ html[data-theme="light"] .theme-toggle .tt-rays {
   transform: rotate(0) scale(1);
 }
 
-@media (max-width: 720px) {
-  .theme-toggle {
-    top: 16px;
-    right: 16px;
-  }
-}
-
 /* Topbar — OpenClaw-like */
 
 .site-topbar {
@@ -287,7 +283,7 @@ html[data-theme="light"] .theme-toggle .tt-rays {
   background: color-mix(in srgb, var(--bg-page) 72%, transparent);
   backdrop-filter: saturate(140%) blur(16px);
   min-height: 54px;
-  padding: 0 76px 0 32px;
+  padding: 0 20px 0 32px;
   display: flex;
   position: sticky;
   top: 0;
@@ -308,12 +304,14 @@ html[data-theme="light"] .site-topbar {
   font-weight: 600;
   text-decoration: none;
   display: inline-flex;
+  min-width: 0;
 }
 
 .site-brand img {
   width: 22px;
   height: 22px;
   object-fit: contain;
+  flex: none;
 }
 
 .site-nav {
@@ -322,6 +320,7 @@ html[data-theme="light"] .site-topbar {
   gap: 26px;
   display: flex;
   overflow-x: auto;
+  margin-left: auto;
 }
 
 .site-nav-link {
@@ -363,25 +362,41 @@ html[data-theme="light"] .site-topbar {
   color: var(--accent-primary);
 }
 
+/* Theme + hamburger share one right cluster — no overlap on mobile */
+.site-topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-left: 12px;
+}
+
 .site-menu-btn {
   display: none;
   width: 2.25rem;
   height: 2.25rem;
   border: 1px solid var(--border-subtle);
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 5px;
-  margin-left: auto;
+  flex: none;
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.site-menu-btn:hover {
+  background: var(--surface-interactive);
 }
 
 .site-menu-btn span {
   display: block;
   width: 14px;
   height: 1.5px;
-  background: var(--text-primary);
+  background: currentColor;
 }
 
 .site-menu-panel {
@@ -2049,7 +2064,20 @@ html[data-theme="light"] .site-footer {
   }
 
   .site-topbar {
-    padding: 0 16px;
+    padding: 0 12px 0 16px;
+    gap: 12px;
+  }
+
+  .site-topbar-actions {
+    margin-left: auto;
+    gap: 4px;
+  }
+
+  .site-brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: min(48vw, 11.5rem);
   }
 
   .rail {
@@ -2110,6 +2138,12 @@ html[data-theme="light"] .site-footer {
   .marquee-track {
     margin-left: -20px;
     margin-right: -20px;
+  }
+
+  /* Tighter mobile menu panel under sticky topbar */
+  .site-menu-panel a {
+    min-height: 48px;
+    padding: 0.85rem 1rem;
   }
 }
 

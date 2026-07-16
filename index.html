@@ -30,27 +30,6 @@
   </script>
 </head>
 <body>
-  <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme" title="Switch theme">
-    <!-- Sun-and-moon morph: radius/position driven by CSS (r / cx / cy) -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <mask id="tt-moon">
-        <rect width="24" height="24" fill="#fff"></rect>
-        <circle class="tt-hole" cx="17" cy="7" r="7" fill="#000"></circle>
-      </mask>
-      <circle class="tt-core" cx="12" cy="12" r="9" mask="url(#tt-moon)"></circle>
-      <g class="tt-rays">
-        <line x1="12" y1="1.6" x2="12" y2="3.8"></line>
-        <line x1="12" y1="20.2" x2="12" y2="22.4"></line>
-        <line x1="1.6" y1="12" x2="3.8" y2="12"></line>
-        <line x1="20.2" y1="12" x2="22.4" y2="12"></line>
-        <line x1="4.6" y1="4.6" x2="6.2" y2="6.2"></line>
-        <line x1="17.8" y1="17.8" x2="19.4" y2="19.4"></line>
-        <line x1="4.6" y1="19.4" x2="6.2" y2="17.8"></line>
-        <line x1="17.8" y1="6.2" x2="19.4" y2="4.6"></line>
-      </g>
-    </svg>
-  </button>
-
   <header class="site-topbar">
     <a href="#top" class="site-brand" aria-label="openaiswitch home">
       <img src="assets/openaiswitch-logo.png" alt="">
@@ -82,9 +61,31 @@
         GitHub
       </a>
     </nav>
-    <button class="site-menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
-      <span></span><span></span>
-    </button>
+    <div class="site-topbar-actions">
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme" title="Switch theme">
+        <!-- Sun-and-moon morph: radius/position driven by CSS (r / cx / cy) -->
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <mask id="tt-moon">
+            <rect width="24" height="24" fill="#fff"></rect>
+            <circle class="tt-hole" cx="17" cy="7" r="7" fill="#000"></circle>
+          </mask>
+          <circle class="tt-core" cx="12" cy="12" r="9" mask="url(#tt-moon)"></circle>
+          <g class="tt-rays">
+            <line x1="12" y1="1.6" x2="12" y2="3.8"></line>
+            <line x1="12" y1="20.2" x2="12" y2="22.4"></line>
+            <line x1="1.6" y1="12" x2="3.8" y2="12"></line>
+            <line x1="20.2" y1="12" x2="22.4" y2="12"></line>
+            <line x1="4.6" y1="4.6" x2="6.2" y2="6.2"></line>
+            <line x1="17.8" y1="17.8" x2="19.4" y2="19.4"></line>
+            <line x1="4.6" y1="19.4" x2="6.2" y2="17.8"></line>
+            <line x1="17.8" y1="6.2" x2="19.4" y2="4.6"></line>
+          </g>
+        </svg>
+      </button>
+      <button class="site-menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
+        <span></span><span></span>
+      </button>
+    </div>
   </header>
 
   <div class="site-menu-panel" id="site-menu" hidden>
