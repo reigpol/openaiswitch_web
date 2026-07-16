@@ -75,41 +75,31 @@
   function buildCodeRain(root) {
     if (!root) return;
 
+    // Short fragments only — reads as texture, not as a second terminal
     const tokens = [
-      { t: "ais resume", k: "kw" },
-      { t: "--tool codex", k: "fn" },
-      { t: "--in claude", k: "fn" },
-      { t: "claude --resume", k: "str" },
-      { t: "codex resume", k: "str" },
-      { t: "grok --resume", k: "str" },
-      { t: "opencode --session", k: "str" },
-      { t: "## Objective", k: "kw" },
-      { t: "## Decisions", k: "kw" },
-      { t: "## Next actions", k: "kw" },
-      { t: "handoff.md", k: "fn" },
-      { t: "session.md", k: "fn" },
-      { t: "decisions.md", k: "fn" },
-      { t: "state.json", k: "fn" },
-      { t: ".ai/openaiswitch/", k: "str" },
-      { t: "[REDACTED_API_KEY]", k: "cmt" },
-      { t: "native resume", k: "ok" },
-      { t: "write bridge", k: "kw" },
-      { t: "source → target", k: "fn" },
-      { t: "ais doctor", k: "kw" },
-      { t: "ais status", k: "kw" },
-      { t: "--effort high", k: "fn" },
-      { t: "--last --copy", k: "fn" },
-      { t: "read-only store", k: "cmt" },
-      { t: "func Handoff()", k: "kw" },
-      { t: "type Session", k: "kw" },
-      { t: "go install ./cmd/ais", k: "str" },
-      { t: "quota: source", k: "cmt" },
-      { t: "same CLI · no handoff", k: "cmt" },
-      { t: "bridge, not transcript", k: "fn" },
+      { t: "ais", k: "kw" },
+      { t: "resume", k: "kw" },
+      { t: "handoff", k: "fn" },
+      { t: "claude", k: "str" },
+      { t: "codex", k: "str" },
+      { t: "grok", k: "str" },
+      { t: "session", k: "fn" },
+      { t: "bridge", k: "kw" },
+      { t: "--tool", k: "fn" },
+      { t: "--in", k: "fn" },
+      { t: "state", k: "cmt" },
+      { t: "quota", k: "cmt" },
+      { t: "native", k: "ok" },
+      { t: "source", k: "fn" },
+      { t: "target", k: "fn" },
+      { t: ".md", k: "cmt" },
+      { t: "→", k: "cmt" },
+      { t: "§", k: "cmt" },
+      { t: "//", k: "cmt" },
+      { t: "{}", k: "cmt" },
     ];
 
-    // Fewer columns = quieter background texture
-    const colCount = window.innerWidth < 720 ? 4 : window.innerWidth < 1100 ? 6 : 8;
+    const colCount = window.innerWidth < 720 ? 3 : window.innerWidth < 1100 ? 5 : 6;
     root.innerHTML = "";
 
     for (let c = 0; c < colCount; c++) {
@@ -118,10 +108,10 @@
       const inner = document.createElement("div");
       inner.className = "code-col-inner";
       // Offset animation per column
-      inner.style.animationDelay = `${-(c * 2.4)}s`;
+      inner.style.animationDelay = `${-(c * 3.1)}s`;
 
       const lines = [];
-      const n = 12 + (c % 4);
+      const n = 10 + (c % 3);
       for (let i = 0; i < n; i++) {
         const tok = tokens[(c * 7 + i * 3) % tokens.length];
         lines.push(`<span class="code-tok ${tok.k === "ok" ? "kw" : tok.k}">${tok.t}</span>`);
