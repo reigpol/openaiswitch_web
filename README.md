@@ -1,5 +1,7 @@
 # openaiswitch_web
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-22A447?style=for-the-badge)](LICENSE)
+
 Marketing landing page for [openaiswitch](https://github.com/reigpol/openaiswitch) (`ais`).
 
 ## Local preview
@@ -17,3 +19,7 @@ Host with any static host, or GitHub Pages from the `main` branch root.
 ## Related
 
 - Product repo: https://github.com/reigpol/openaiswitch
+
+## License
+
+[MIT](LICENSE) — same as [openaiswitch](https://github.com/reigpol/openaiswitch).
