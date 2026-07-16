@@ -483,15 +483,15 @@ html[data-theme="light"] .site-topbar {
   overflow: hidden;
 }
 
-.hero::before {
-  content: "";
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(var(--chart-line) 1px, transparent 1.5px);
-  background-size: 26px 26px;
+/* OpenClaw-style interactive dot aura (drawn on canvas) */
+.hero-dots {
   position: absolute;
   inset: 0;
-  mask-image: linear-gradient(#000, #0000 90%);
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
 }
 
 .hero-art {
@@ -506,50 +506,34 @@ html[data-theme="light"] .site-topbar {
   overflow: visible;
 }
 
-/* Soft brand atmosphere — presence without noise */
+/* Soft brand wash under the dots — keeps the aura warm without noise */
 .hero-glow {
   position: absolute;
-  inset: -8% -4% 0;
+  inset: -6% -2% 10%;
   z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(
-      ellipse 42% 48% at 18% 38%,
-      color-mix(in srgb, var(--accent-primary) 16%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 38% 42% at 84% 58%,
-      color-mix(in srgb, var(--accent-secondary) 10%, transparent),
+      ellipse 48% 52% at 50% 36%,
+      color-mix(in srgb, var(--accent-primary) 12%, transparent),
       transparent 72%
     ),
     radial-gradient(
-      ellipse 55% 40% at 50% 0%,
-      color-mix(in srgb, var(--accent-primary) 7%, transparent),
-      transparent 68%
+      ellipse 34% 38% at 22% 48%,
+      color-mix(in srgb, var(--accent-primary) 8%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 32% 36% at 80% 52%,
+      color-mix(in srgb, var(--accent-secondary) 7%, transparent),
+      transparent 72%
     );
-  filter: blur(2px);
-  opacity: 0.9;
+  filter: blur(4px);
+  opacity: 0.85;
 }
 
 html[data-theme="light"] .hero-glow {
-  opacity: 0.55;
-  background:
-    radial-gradient(
-      ellipse 42% 48% at 18% 38%,
-      color-mix(in srgb, var(--accent-primary) 12%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 38% 42% at 84% 58%,
-      color-mix(in srgb, var(--accent-secondary) 8%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 55% 40% at 50% 0%,
-      color-mix(in srgb, var(--accent-primary) 6%, transparent),
-      transparent 68%
-    );
+  opacity: 0.5;
 }
 
 .hero-content {
@@ -570,111 +554,10 @@ html[data-theme="light"] .hero-glow {
   gap: 12px;
 }
 
-/* Whisper of code as texture — blurred, side-only, almost unreadable */
-.code-rain {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 1.25rem;
-  padding: 0 3%;
-  opacity: 0.16;
-  overflow: hidden;
-  filter: blur(0.7px);
-  /* Keep the terminal zone clear; texture lives on the sides */
-  mask-image: radial-gradient(
-    ellipse 58% 70% at 50% 40%,
-    transparent 0%,
-    transparent 42%,
-    #000 78%,
-    transparent 100%
-  );
-  -webkit-mask-image: radial-gradient(
-    ellipse 58% 70% at 50% 40%,
-    transparent 0%,
-    transparent 42%,
-    #000 78%,
-    transparent 100%
-  );
-}
-
-html[data-theme="light"] .code-rain {
-  opacity: 0.12;
-  filter: blur(0.85px);
-}
-
-.code-col {
-  flex: 1 1 0;
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: clamp(0.48rem, 0.85vw, 0.58rem);
-  line-height: 1.85;
-  letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--text-muted) 88%, var(--accent-primary) 12%);
-  white-space: nowrap;
-  overflow: hidden;
-  mask-image: linear-gradient(#0000, #000 22%, #000 78%, #0000);
-  -webkit-mask-image: linear-gradient(#0000, #000 22%, #000 78%, #0000);
-}
-
-.code-col-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  animation: code-fall linear infinite;
-  will-change: transform;
-}
-
-.code-col:nth-child(odd) .code-col-inner {
-  animation-direction: reverse;
-  animation-duration: 70s;
-}
-
-.code-col:nth-child(even) .code-col-inner {
-  animation-duration: 88s;
-}
-
-.code-col:nth-child(3n) .code-col-inner {
-  animation-duration: 78s;
-  opacity: 0.7;
-}
-
-.code-col:nth-child(4n) .code-col-inner {
-  animation-duration: 96s;
-  opacity: 0.5;
-}
-
-/* No colorful hierarchy — pure texture */
-.code-tok,
-.code-tok.kw,
-.code-tok.fn,
-.code-tok.str,
-.code-tok.cmt,
-.code-tok.ok {
-  opacity: 0.55;
-  color: inherit;
-}
-
-@keyframes code-fall {
-  from {
-    transform: translateY(-50%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 720px) {
   .hero-glow {
-    opacity: 0.7;
-    filter: blur(3px);
-  }
-
-  .code-rain {
-    opacity: 0.1;
-    filter: blur(1px);
-    gap: 0.5rem;
+    opacity: 0.65;
+    filter: blur(5px);
   }
 }
 

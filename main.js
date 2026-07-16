@@ -70,57 +70,217 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Hero: code-token rain + typewriter terminal (product-native, not ASCII blob)
+  // Hero: OpenClaw-style interactive dot aura + ais resume walkthrough
   // ---------------------------------------------------------------------------
-  function buildCodeRain(root) {
-    if (!root) return;
+  function startHeroDots(canvas) {
+    if (!canvas || !(canvas instanceof HTMLCanvasElement)) return () => {};
 
-    // Short fragments only — reads as texture, not as a second terminal
-    const tokens = [
-      { t: "ais", k: "kw" },
-      { t: "resume", k: "kw" },
-      { t: "handoff", k: "fn" },
-      { t: "claude", k: "str" },
-      { t: "codex", k: "str" },
-      { t: "grok", k: "str" },
-      { t: "session", k: "fn" },
-      { t: "bridge", k: "kw" },
-      { t: "--tool", k: "fn" },
-      { t: "--in", k: "fn" },
-      { t: "state", k: "cmt" },
-      { t: "quota", k: "cmt" },
-      { t: "native", k: "ok" },
-      { t: "source", k: "fn" },
-      { t: "target", k: "fn" },
-      { t: ".md", k: "cmt" },
-      { t: "→", k: "cmt" },
-      { t: "§", k: "cmt" },
-      { t: "//", k: "cmt" },
-      { t: "{}", k: "cmt" },
-    ];
+    const hero = canvas.closest(".hero") || canvas.parentElement;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!hero || !ctx) return () => {};
 
-    const colCount = window.innerWidth < 720 ? 3 : window.innerWidth < 1100 ? 5 : 6;
-    root.innerHTML = "";
+    const dots = [];
+    let w = 0;
+    let h = 0;
+    let dpr = 1;
+    let mx = -9999;
+    let my = -9999;
+    let active = false;
+    let raf = 0;
+    let stopped = false;
+    let visible = true;
 
-    for (let c = 0; c < colCount; c++) {
-      const col = document.createElement("div");
-      col.className = "code-col";
-      const inner = document.createElement("div");
-      inner.className = "code-col-inner";
-      // Offset animation per column
-      inner.style.animationDelay = `${-(c * 3.1)}s`;
+    const readAccent = () => {
+      const styles = getComputedStyle(document.documentElement);
+      return (
+        styles.getPropertyValue("--accent-primary").trim() ||
+        styles.getPropertyValue("--lime-bright").trim() ||
+        "#9bda48"
+      );
+    };
 
-      const lines = [];
-      const n = 10 + (c % 3);
-      for (let i = 0; i < n; i++) {
-        const tok = tokens[(c * 7 + i * 3) % tokens.length];
-        lines.push(`<span class="code-tok ${tok.k === "ok" ? "kw" : tok.k}">${tok.t}</span>`);
+    const hexToRgb = (hex) => {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
+      if (!m) return { r: 155, g: 218, b: 72 };
+      return {
+        r: parseInt(m[1], 16),
+        g: parseInt(m[2], 16),
+        b: parseInt(m[3], 16),
+      };
+    };
+
+    let rgb = hexToRgb(readAccent());
+
+    const layout = () => {
+      const rect = hero.getBoundingClientRect();
+      w = Math.max(1, Math.floor(rect.width));
+      h = Math.max(1, Math.floor(rect.height));
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const gap = w < 720 ? 22 : 24;
+      const cx = w * 0.5;
+      const cy = h * 0.38;
+      const rx = w * 0.52;
+      const ry = h * 0.48;
+
+      dots.length = 0;
+      const x0 = (w % gap) / 2;
+      const y0 = (h % gap) / 2;
+      for (let y = y0; y <= h; y += gap) {
+        for (let x = x0; x <= w; x += gap) {
+          const nx = (x - cx) / rx;
+          const ny = (y - cy) / ry;
+          const d = Math.sqrt(nx * nx + ny * ny);
+          // Soft aura: denser/brighter near center, fade at edges
+          if (d > 1.15) continue;
+          const aura = Math.max(0, 1 - d * d);
+          const n1 = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+          const n2 = Math.sin(x * 4.1414 + y * 2.718) * 23421.631;
+          const j1 = n1 - Math.floor(n1);
+          const j2 = n2 - Math.floor(n2);
+          dots.push({
+            ox: x + (j1 - 0.5) * 1.4,
+            oy: y + (j2 - 0.5) * 1.4,
+            x,
+            y,
+            vx: 0,
+            vy: 0,
+            base: 0.12 + aura * 0.55,
+            r: 1.05 + aura * 0.55,
+          });
+        }
       }
-      // Duplicate for seamless loop
-      inner.innerHTML = lines.concat(lines).join("");
-      col.appendChild(inner);
-      root.appendChild(col);
-    }
+      rgb = hexToRgb(readAccent());
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      const influence = w < 720 ? 72 : 96;
+      const strength = w < 720 ? 14 : 18;
+
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        let tx = d.ox;
+        let ty = d.oy;
+
+        if (active && !reduceMotion) {
+          const dx = d.ox - mx;
+          const dy = d.oy - my;
+          const dist = Math.hypot(dx, dy) || 0.001;
+          if (dist < influence) {
+            const t = 1 - dist / influence;
+            const force = t * t * strength;
+            tx += (dx / dist) * force;
+            ty += (dy / dist) * force;
+          }
+        }
+
+        // Spring back toward target (rest or repelled)
+        d.vx += (tx - d.x) * 0.14;
+        d.vy += (ty - d.y) * 0.14;
+        d.vx *= 0.72;
+        d.vy *= 0.72;
+        d.x += d.vx;
+        d.y += d.vy;
+
+        const lift = Math.min(1, Math.hypot(d.x - d.ox, d.y - d.oy) / 12);
+        const alpha = Math.min(0.85, d.base + lift * 0.35);
+        const radius = d.r + lift * 0.55;
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+        ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const tick = () => {
+      if (stopped || !visible) {
+        raf = 0;
+        return;
+      }
+      draw();
+      raf = requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      if (!raf && !stopped && visible) raf = requestAnimationFrame(tick);
+    };
+    const stopLoop = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    const onPointer = (e) => {
+      const rect = hero.getBoundingClientRect();
+      mx = e.clientX - rect.left;
+      my = e.clientY - rect.top;
+      active = true;
+      if (!reduceMotion) start();
+    };
+    const onLeave = () => {
+      active = false;
+      mx = -9999;
+      my = -9999;
+    };
+
+    layout();
+    draw();
+    if (!reduceMotion) start();
+
+    hero.addEventListener("pointermove", onPointer, { passive: true });
+    hero.addEventListener("pointerenter", onPointer, { passive: true });
+    hero.addEventListener("pointerleave", onLeave, { passive: true });
+
+    let resizeTimer = 0;
+    const onResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        layout();
+        draw();
+        if (!reduceMotion) start();
+      }, 120);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+
+    // Theme toggles change --accent-primary; repaint accents
+    const themeObs = new MutationObserver(() => {
+      rgb = hexToRgb(readAccent());
+      draw();
+    });
+    themeObs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry?.isIntersecting ?? false;
+        if (visible) {
+          if (!reduceMotion) start();
+          else draw();
+        } else stopLoop();
+      },
+      { rootMargin: "80px 0px" }
+    );
+    io.observe(hero);
+
+    return () => {
+      stopped = true;
+      stopLoop();
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener("resize", onResize);
+      hero.removeEventListener("pointermove", onPointer);
+      hero.removeEventListener("pointerenter", onPointer);
+      hero.removeEventListener("pointerleave", onLeave);
+      themeObs.disconnect();
+      io.disconnect();
+    };
   }
 
   function startHeroTerminal(el) {
@@ -409,19 +569,7 @@
     };
   }
 
-  const rainRoot = document.querySelector("[data-code-rain]");
-  buildCodeRain(rainRoot);
-  if (!reduceMotion) {
-    let rainTimer = 0;
-    window.addEventListener(
-      "resize",
-      () => {
-        window.clearTimeout(rainTimer);
-        rainTimer = window.setTimeout(() => buildCodeRain(rainRoot), 180);
-      },
-      { passive: true }
-    );
-  }
+  startHeroDots(document.querySelector("[data-hero-dots]"));
   startHeroTerminal(document.querySelector("[data-hero-term]"));
 
   // ---------------------------------------------------------------------------
