@@ -70,7 +70,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Hero: living dot field (magnetic aura + constellation + cursor glow)
+  // Hero: quiet OpenClaw-style dot aura (subtle idle + soft hover drift)
   // ---------------------------------------------------------------------------
   function startHeroDots(canvas) {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) return () => {};
@@ -83,22 +83,15 @@
     let w = 0;
     let h = 0;
     let dpr = 1;
-    let gap = 24;
-    // Smoothed pointer (buttery tracking)
     let mx = -9999;
     let my = -9999;
     let smx = -9999;
     let smy = -9999;
-    let pvx = 0;
-    let pvy = 0;
     let active = false;
     let raf = 0;
     let stopped = false;
     let visible = true;
     let t0 = performance.now();
-    let ripple = 0; // 0..1 expand on enter
-    let rippleX = 0;
-    let rippleY = 0;
 
     const hexToRgb = (hex) => {
       const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex).trim());
@@ -110,21 +103,16 @@
       };
     };
 
-    const readColors = () => {
+    const readPrimary = () => {
       const s = getComputedStyle(document.documentElement);
-      const primary =
+      return hexToRgb(
         s.getPropertyValue("--accent-primary").trim() ||
-        s.getPropertyValue("--lime-bright").trim() ||
-        "#9bda48";
-      const secondary =
-        s.getPropertyValue("--accent-secondary").trim() ||
-        s.getPropertyValue("--cyan-bright").trim() ||
-        "#34f5e9";
-      return { primary: hexToRgb(primary), secondary: hexToRgb(secondary) };
+          s.getPropertyValue("--lime-bright").trim() ||
+          "#9bda48"
+      );
     };
 
-    let colors = readColors();
-
+    let rgb = readPrimary();
     const frac = (n) => n - Math.floor(n);
 
     const layout = () => {
@@ -138,53 +126,55 @@
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      gap = w < 720 ? 20 : w < 1100 ? 22 : 24;
+      const gap = w < 720 ? 24 : 26;
       const cx = w * 0.5;
-      const cy = h * 0.36;
-      const rx = w * 0.56;
-      const ry = h * 0.52;
+      const cy = h * 0.38;
+      const rx = w * 0.5;
+      const ry = h * 0.46;
 
       dots.length = 0;
       const x0 = (w % gap) / 2;
       const y0 = (h % gap) / 2;
-      for (let y = y0; y <= h + gap; y += gap) {
-        for (let x = x0; x <= w + gap; x += gap) {
+      for (let y = y0; y <= h; y += gap) {
+        for (let x = x0; x <= w; x += gap) {
           const nx = (x - cx) / rx;
           const ny = (y - cy) / ry;
-          const d = Math.sqrt(nx * nx + ny * ny);
-          if (d > 1.12) continue;
+          const d = Math.hypot(nx, ny);
+          if (d > 1.08) continue;
           const aura = Math.max(0, 1 - d * d);
-          // Soft hole so the terminal stays readable
-          const holeNx = (x - cx) / (w * 0.22);
-          const holeNy = (y - cy) / (h * 0.2);
-          const hole = Math.hypot(holeNx, holeNy);
-          const holeFade = hole < 0.55 ? hole / 0.55 : 1;
+          // Keep the terminal zone calmer
+          const hole = Math.hypot((x - cx) / (w * 0.24), (y - cy) / (h * 0.22));
+          const holeFade = hole < 0.6 ? 0.25 + (hole / 0.6) * 0.75 : 1;
           const n1 = frac(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
           const n2 = frac(Math.sin(x * 4.1414 + y * 2.718) * 23421.631);
-          const phase = n1 * Math.PI * 2;
           dots.push({
-            ox: x + (n1 - 0.5) * 2.2,
-            oy: y + (n2 - 0.5) * 2.2,
+            ox: x + (n1 - 0.5) * 1.1,
+            oy: y + (n2 - 0.5) * 1.1,
             x,
             y,
             vx: 0,
             vy: 0,
-            base: (0.1 + aura * 0.62) * (0.35 + holeFade * 0.65),
-            r: 1 + aura * 0.75,
-            phase,
-            seed: n1,
-            heat: 0,
+            // Low alpha — texture, not decoration
+            base: (0.06 + aura * 0.28) * holeFade,
+            r: 0.9 + aura * 0.35,
+            phase: n1 * Math.PI * 2,
           });
         }
       }
-      colors = readColors();
+      rgb = readPrimary();
     };
 
-    const mixRgb = (a, b, t) => ({
-      r: a.r + (b.r - a.r) * t,
-      g: a.g + (b.g - a.g) * t,
-      b: a.b + (b.b - a.b) * t,
-    });
+    const paintStatic = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        if (d.base < 0.03) continue;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${d.base})`;
+        ctx.arc(d.ox, d.oy, d.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
 
     const frame = (now) => {
       if (stopped || !visible) {
@@ -193,146 +183,48 @@
       }
 
       const t = now - t0;
-      const mobile = w < 720;
-      const influence = mobile ? 110 : 150;
-      const linkDist = gap * 1.85;
+      const influence = w < 720 ? 70 : 88;
 
-      // Smooth pointer + velocity
       if (active) {
-        const k = 0.18;
-        const nx = smx + (mx - smx) * k;
-        const ny = smy + (my - smy) * k;
-        pvx = nx - smx;
-        pvy = ny - smy;
-        smx = nx;
-        smy = ny;
-      } else {
-        pvx *= 0.9;
-        pvy *= 0.9;
+        smx += (mx - smx) * 0.12;
+        smy += (my - smy) * 0.12;
       }
-
-      if (ripple > 0) ripple = Math.max(0, ripple - 0.016);
 
       ctx.clearRect(0, 0, w, h);
 
-      // Soft cursor spotlight (under dots)
-      if (active && !reduceMotion) {
-        const g = ctx.createRadialGradient(smx, smy, 0, smx, smy, influence * 1.15);
-        g.addColorStop(0, `rgba(${colors.secondary.r},${colors.secondary.g},${colors.secondary.b},0.1)`);
-        g.addColorStop(0.35, `rgba(${colors.primary.r},${colors.primary.g},${colors.primary.b},0.055)`);
-        g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // Enter ripple ring
-      if (ripple > 0.02) {
-        const rr = (1 - ripple) * Math.min(w, h) * 0.35;
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${colors.primary.r},${colors.primary.g},${colors.primary.b},${ripple * 0.35})`;
-        ctx.lineWidth = 1.25;
-        ctx.arc(rippleX, rippleY, rr, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      const hot = [];
-
       for (let i = 0; i < dots.length; i++) {
         const d = dots[i];
+        // Tiny idle drift only
+        let tx = d.ox + Math.sin(t * 0.00035 + d.phase) * 0.7;
+        let ty = d.oy + Math.cos(t * 0.0003 + d.phase * 1.1) * 0.55;
 
-        // Idle breath / wave field
-        let tx = d.ox;
-        let ty = d.oy;
-        if (!reduceMotion) {
-          const wave = 1.6 + d.seed * 1.1;
-          tx += Math.sin(t * 0.00055 + d.phase) * wave;
-          ty += Math.cos(t * 0.00048 + d.phase * 1.17) * wave * 0.9;
-        }
-
-        let proximity = 0;
-        if (active && !reduceMotion) {
+        // Soft, small push away from cursor — barely noticeable
+        if (active) {
           const dx = d.ox - smx;
           const dy = d.oy - smy;
           const dist = Math.hypot(dx, dy) || 0.001;
           if (dist < influence) {
             const u = 1 - dist / influence;
-            const ease = u * u * (3 - 2 * u); // smoothstep
-            proximity = ease;
-            // Magnetic pull toward cursor
-            tx += (smx - d.ox) * ease * 0.28;
-            ty += (smy - d.oy) * ease * 0.28;
-            // Soft swirl from pointer velocity
-            const ang = Math.atan2(dy, dx) + Math.PI / 2;
-            const swirl = ease * (2.2 + Math.hypot(pvx, pvy) * 0.35);
-            tx += Math.cos(ang) * swirl;
-            ty += Math.sin(ang) * swirl;
+            const ease = u * u;
+            const force = ease * 5.5;
+            tx += (dx / dist) * force;
+            ty += (dy / dist) * force;
           }
         }
 
-        // Critically damped-ish spring
-        d.vx += (tx - d.x) * 0.16;
-        d.vy += (ty - d.y) * 0.16;
-        d.vx *= 0.78;
-        d.vy *= 0.78;
+        d.vx += (tx - d.x) * 0.1;
+        d.vy += (ty - d.y) * 0.1;
+        d.vx *= 0.82;
+        d.vy *= 0.82;
         d.x += d.vx;
         d.y += d.vy;
 
-        d.heat += (proximity - d.heat) * 0.12;
-        if (d.heat > 0.08) hot.push(d);
-      }
-
-      // Constellation links among hot dots (near cursor)
-      if (hot.length > 1 && !reduceMotion) {
-        ctx.lineCap = "round";
-        for (let i = 0; i < hot.length; i++) {
-          const a = hot[i];
-          // Only link a few neighbors for performance
-          let links = 0;
-          for (let j = i + 1; j < hot.length && links < 3; j++) {
-            const b = hot[j];
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist > linkDist || dist < 0.5) continue;
-            const heat = Math.min(a.heat, b.heat);
-            const alpha = (1 - dist / linkDist) * heat * 0.45;
-            if (alpha < 0.03) continue;
-            const c = mixRgb(colors.primary, colors.secondary, heat);
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(${c.r|0},${c.g|0},${c.b|0},${alpha})`;
-            ctx.lineWidth = 0.7 + heat * 0.9;
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-            links += 1;
-          }
-        }
-      }
-
-      // Dots (glow halo + core)
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i];
-        const heat = d.heat;
-        const lift = Math.min(1, Math.hypot(d.x - d.ox, d.y - d.oy) / 14);
-        const pulse = reduceMotion
-          ? 0
-          : (Math.sin(t * 0.0022 + d.phase) * 0.5 + 0.5) * 0.08 * d.base;
-        const alpha = Math.min(0.95, d.base + heat * 0.55 + lift * 0.2 + pulse);
-        if (alpha < 0.04) continue;
-
-        const c = mixRgb(colors.primary, colors.secondary, heat * 0.85);
-        const radius = d.r + heat * 1.4 + lift * 0.5;
-
-        if (heat > 0.15 || lift > 0.2) {
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(${c.r|0},${c.g|0},${c.b|0},${0.1 + heat * 0.22})`;
-          ctx.arc(d.x, d.y, radius * (2.6 + heat * 1.4), 0, Math.PI * 2);
-          ctx.fill();
-        }
-
+        if (d.base < 0.03) continue;
+        const lift = Math.min(1, Math.hypot(d.x - d.ox, d.y - d.oy) / 8);
+        const alpha = Math.min(0.42, d.base + lift * 0.08);
         ctx.beginPath();
-        ctx.fillStyle = `rgba(${c.r|0},${c.g|0},${c.b|0},${alpha})`;
-        ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+        ctx.arc(d.x, d.y, d.r + lift * 0.15, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -340,7 +232,7 @@
     };
 
     const start = () => {
-      if (!raf && !stopped && visible) {
+      if (!raf && !stopped && visible && !reduceMotion) {
         t0 = performance.now();
         raf = requestAnimationFrame(frame);
       }
@@ -352,46 +244,22 @@
 
     const onPointer = (e) => {
       const rect = hero.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      mx = e.clientX - rect.left;
+      my = e.clientY - rect.top;
       if (!active) {
-        smx = x;
-        smy = y;
-        ripple = 1;
-        rippleX = x;
-        rippleY = y;
+        smx = mx;
+        smy = my;
       }
-      mx = x;
-      my = y;
       active = true;
-      if (!reduceMotion) start();
+      start();
     };
     const onLeave = () => {
       active = false;
-      mx = -9999;
-      my = -9999;
     };
 
     layout();
-    if (reduceMotion) {
-      // Static paint once
-      const paintStatic = () => {
-        ctx.clearRect(0, 0, w, h);
-        for (let i = 0; i < dots.length; i++) {
-          const d = dots[i];
-          d.x = d.ox;
-          d.y = d.oy;
-          if (d.base < 0.05) continue;
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(${colors.primary.r},${colors.primary.g},${colors.primary.b},${d.base})`;
-          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      };
-      paintStatic();
-    } else {
-      start();
-    }
+    if (reduceMotion) paintStatic();
+    else start();
 
     hero.addEventListener("pointermove", onPointer, { passive: true });
     hero.addEventListener("pointerenter", onPointer, { passive: true });
@@ -402,23 +270,15 @@
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
         layout();
-        if (!reduceMotion) start();
-        else {
-          ctx.clearRect(0, 0, w, h);
-          for (let i = 0; i < dots.length; i++) {
-            const d = dots[i];
-            ctx.beginPath();
-            ctx.fillStyle = `rgba(${colors.primary.r},${colors.primary.g},${colors.primary.b},${d.base})`;
-            ctx.arc(d.ox, d.oy, d.r, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
+        if (reduceMotion) paintStatic();
+        else start();
       }, 120);
     };
     window.addEventListener("resize", onResize, { passive: true });
 
     const themeObs = new MutationObserver(() => {
-      colors = readColors();
+      rgb = readPrimary();
+      if (reduceMotion) paintStatic();
     });
     themeObs.observe(document.documentElement, {
       attributes: true,
@@ -429,7 +289,8 @@
       ([entry]) => {
         visible = entry?.isIntersecting ?? false;
         if (visible) {
-          if (!reduceMotion) start();
+          if (reduceMotion) paintStatic();
+          else start();
         } else stopLoop();
       },
       { rootMargin: "80px 0px" }
