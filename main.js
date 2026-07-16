@@ -142,33 +142,34 @@
     const prevBtn = document.querySelector("[data-hero-prev]");
     const nextBtn = document.querySelector("[data-hero-next]");
 
-    // Live ais resume flow (session → target → write handoff → paste).
-    const sessionTitle =
-      "Generate Mobile-First Responsive English Portfolio Landing P…";
+    // 4-step story: session → target → write → paste (matches live ais resume).
+    const sessionTitle = "Ship a mobile-first portfolio landing page";
+    const sessionHead = `<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1d ago ·</span> <span class="t-cmd">${sessionTitle}</span>`;
     const frames = [
       {
-        hold: 5400,
+        hold: 5600,
         label: "Pick session",
         short: "Session",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          '<span class="t-dim">Sessions for /Users/pol</span>',
+          '<span class="t-dim">Sessions for ~/code/openaiswitch</span>',
           '<span class="t-hint">   ↑ more</span>',
-          '<span class="t-dim">  claude    1d ago       e592916d-386</span>',
-          '<span class="t-dim">  codex     1d ago       019f678b-1a4</span>',
-          '<span class="t-dim">  claude    1d ago       f5490c91-dc9</span>',
-          '<span class="t-dim">  claude    1d ago       &lt;local-command-caveat&gt;Caveat: The messages below were ge…</span>',
-          '<span class="t-dim">  codex     1d ago       # AGENTS.md instructions for /Users/pol</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">grok      1d ago       Generate Mobile-First Responsive English Portfolio Landi…</span>',
+          '<span class="t-dim">  claude    12m ago      Fix OAuth callback race on Safari</span>',
+          '<span class="t-dim">  codex     41m ago      Rewrite migration notes for Odoo 18</span>',
+          '<span class="t-dim">  opencode  2h ago       Map which skills load per tool</span>',
+          '<span class="t-dim">  claude    5h ago       Draft security model for shared handoffs</span>',
+          '<span class="t-dim">  codex     9h ago       Recover a flaky CI flake in resume tests</span>',
+          `<span class="t-accent">❯</span> <span class="t-cmd">grok      1d ago       ${sessionTitle}</span>`,
+          '<span class="t-hint">  ↑/↓ move   enter select   q cancel</span>',
         ],
       },
       {
-        hold: 5200,
+        hold: 5400,
         label: "Choose target",
         short: "Target",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          `<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1d ago ·</span> <span class="t-cmd">${sessionTitle}</span>`,
+          sessionHead,
           '<span class="t-dim">What do you want to do with this conversation?</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">Continue in Claude</span>',
           '<span class="t-dim">  Continue in Codex</span>',
@@ -180,23 +181,27 @@
         ],
       },
       {
-        hold: 4800,
+        hold: 5200,
         spinner: true,
         label: "Write handoff",
         short: "Write",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          `<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1d ago ·</span> <span class="t-cmd">${sessionTitle}</span>`,
-          '<span class="t-accent" data-spin>⠏</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff  (multi-pass; uses your grok quota)</span>',
+          sessionHead,
+          '',
+          '<span class="t-accent" data-spin>⠏</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff</span>',
+          '<span class="t-hint">   multi-pass · uses your grok quota</span>',
+          '',
+          '<span class="t-dim">   packing decisions, failed attempts, and next moves…</span>',
         ],
       },
       {
-        hold: 5800,
+        hold: 6000,
         label: "Ready to paste",
         short: "Paste",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          `<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1d ago ·</span> <span class="t-cmd">${sessionTitle}</span>`,
+          sessionHead,
           '<span class="t-ok">✓</span> <span class="t-cmd">Handoff ready.</span>',
           '<span class="t-ok">✓</span> <span class="t-cmd">Handoff copied to clipboard</span> <span class="t-dim">(pbcopy)</span>',
           '',
@@ -268,7 +273,7 @@
       const html = frame.lines
         .map((line) =>
           frame.spinner && line.includes("data-spin")
-            ? `<span class="t-accent">${glyph}</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff  (multi-pass; uses your grok quota)</span>`
+            ? `<span class="t-accent">${glyph}</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff</span>`
             : line
         )
         .join("\n");
