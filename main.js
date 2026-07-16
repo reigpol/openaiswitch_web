@@ -142,11 +142,10 @@
     const prevBtn = document.querySelector("[data-hero-prev]");
     const nextBtn = document.querySelector("[data-hero-next]");
 
-    // Short walkthrough: session → target → model → ready to paste.
-    // (Skip reasoning / write spinner / handoff.md — clearer story, fewer slides.)
+    // Story: pick session → choose target → handoff ready (same/default model, no model step).
     const frames = [
       {
-        hold: 3400,
+        hold: 5200,
         label: "Pick session",
         short: "Session",
         lines: [
@@ -162,7 +161,7 @@
         ],
       },
       {
-        hold: 3200,
+        hold: 5000,
         label: "Choose target",
         short: "Target",
         lines: [
@@ -179,29 +178,13 @@
         ],
       },
       {
-        hold: 3000,
-        label: "Pick model",
-        short: "Model",
-        lines: [
-          '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
-          '<span class="t-dim">Model for grok</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">Default</span>',
-          '<span class="t-dim">  grok-4.5</span>',
-          '<span class="t-dim">  grok-composer-2.5-fast</span>',
-          '<span class="t-dim">  Custom model…</span>',
-          '<span class="t-hint">   grok\'s configured model</span>',
-          '<span class="t-hint">  ↑/↓ move   enter select   q cancel</span>',
-        ],
-      },
-      {
-        hold: 3800,
+        hold: 5600,
         label: "Ready to paste",
         short: "Paste",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
-          '<span class="t-ok">✓</span> <span class="t-cmd">Handoff ready.</span>',
+          '<span class="t-ok">✓</span> <span class="t-cmd">Handoff ready</span> <span class="t-dim">(default model · same session context)</span>',
           '<span class="t-ok">✓</span> <span class="t-cmd">Handoff copied to clipboard</span> <span class="t-dim">(pbcopy)</span>',
           '',
           '<span class="t-bar">▌</span>  <span class="t-warn">⚠</span>  <span class="t-cmd">Before you start</span>',
@@ -324,7 +307,7 @@
 
       swapping = true;
       el.classList.add("is-swap");
-      window.setTimeout(apply, 160);
+      window.setTimeout(apply, 320);
     };
 
     const tick = (now) => {

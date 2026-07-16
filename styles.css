@@ -724,12 +724,12 @@ html[data-theme="light"] .hero-term {
   /* Soft terminal fade when a frame is taller than the fixed window */
   mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
   -webkit-mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
-  transition: opacity 0.16s ease, transform 0.18s var(--ease-out);
+  transition: opacity 0.32s ease, transform 0.36s var(--ease-out);
 }
 
 .hero-term-body.is-swap {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(10px);
 }
 
 /* Slide controls — one centered segmented track under the terminal */
