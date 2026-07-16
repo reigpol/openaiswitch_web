@@ -108,7 +108,8 @@
       { t: "bridge, not transcript", k: "fn" },
     ];
 
-    const colCount = window.innerWidth < 720 ? 6 : window.innerWidth < 1100 ? 10 : 14;
+    // Fewer columns = quieter background texture
+    const colCount = window.innerWidth < 720 ? 4 : window.innerWidth < 1100 ? 6 : 8;
     root.innerHTML = "";
 
     for (let c = 0; c < colCount; c++) {
@@ -117,10 +118,10 @@
       const inner = document.createElement("div");
       inner.className = "code-col-inner";
       // Offset animation per column
-      inner.style.animationDelay = `${-(c * 1.7)}s`;
+      inner.style.animationDelay = `${-(c * 2.4)}s`;
 
       const lines = [];
-      const n = 18 + (c % 5);
+      const n = 12 + (c % 4);
       for (let i = 0; i < n; i++) {
         const tok = tokens[(c * 7 + i * 3) % tokens.length];
         lines.push(`<span class="code-tok ${tok.k === "ok" ? "kw" : tok.k}">${tok.t}</span>`);
