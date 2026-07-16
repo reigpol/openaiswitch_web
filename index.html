@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Stop re-explaining your work every time you switch AI coding CLIs. openaiswitch is the open-source bridge that hands off context. Run it with ais.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#101012">
+  <title>openaiswitch — Switch tools. Keep context.</title>
+  <link rel="icon" type="image/png" href="assets/openaiswitch-logo.png">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+  <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&f[]=sentient@400i&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (() => {
+      const key = "ais-theme";
+      const saved = localStorage.getItem(key);
+      let theme = saved === "light" || saved === "dark" ? saved : null;
+      if (!theme) {
+        theme = window.matchMedia("(prefers-color-scheme: light)").matches
+          ? "light"
+          : "dark";
+      }
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.content = theme === "light" ? "#f6f5f3" : "#101012";
+    })();
+  </script>
+</head>
+<body>
+  <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme" title="Switch theme">
+    <!-- Sun-and-moon morph: radius/position driven by CSS (r / cx / cy) -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <mask id="tt-moon">
+        <rect width="24" height="24" fill="#fff"></rect>
+        <circle class="tt-hole" cx="17" cy="7" r="7" fill="#000"></circle>
+      </mask>
+      <circle class="tt-core" cx="12" cy="12" r="9" mask="url(#tt-moon)"></circle>
+      <g class="tt-rays">
+        <line x1="12" y1="1.6" x2="12" y2="3.8"></line>
+        <line x1="12" y1="20.2" x2="12" y2="22.4"></line>
+        <line x1="1.6" y1="12" x2="3.8" y2="12"></line>
+        <line x1="20.2" y1="12" x2="22.4" y2="12"></line>
+        <line x1="4.6" y1="4.6" x2="6.2" y2="6.2"></line>
+        <line x1="17.8" y1="17.8" x2="19.4" y2="19.4"></line>
+        <line x1="4.6" y1="19.4" x2="6.2" y2="17.8"></line>
+        <line x1="17.8" y1="6.2" x2="19.4" y2="4.6"></line>
+      </g>
+    </svg>
+  </button>
+
+  <header class="site-topbar">
+    <a href="#top" class="site-brand" aria-label="openaiswitch home">
+      <img src="assets/openaiswitch-logo.png" alt="">
+      <span>openaiswitch</span>
+    </a>
+    <nav class="site-nav site-nav-desktop" aria-label="Main">
+      <a href="#top" class="site-nav-link active" aria-current="page">
+        <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
+        Product
+      </a>
+      <a href="#trap" class="site-nav-link">
+        <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        The trap
+      </a>
+      <a href="#how" class="site-nav-link">
+        <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+        How it works
+      </a>
+      <a href="#tools" class="site-nav-link">
+        <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+      </a>
+      <a href="#security" class="site-nav-link">
+        <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+        Security
+      </a>
+      <a href="https://github.com/reigpol/openaiswitch" class="site-nav-link" target="_blank" rel="noopener noreferrer">
+        <svg class="site-nav-icon site-nav-icon-simple" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        GitHub
+      </a>
+    </nav>
+    <button class="site-menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <div class="site-menu-panel" id="site-menu" hidden>
+    <a href="#top">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
+      Product
+    </a>
+    <a href="#trap">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      The trap
+    </a>
+    <a href="#install">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 19h16"/></svg>
+      Install
+    </a>
+    <a href="#how">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+      How it works
+    </a>
+    <a href="#tools">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Tools
+    </a>
+    <a href="#security">
+      <svg class="site-nav-icon site-nav-icon-lucide" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      Security
+    </a>
+    <a href="https://github.com/reigpol/openaiswitch" target="_blank" rel="noopener noreferrer">
+      <svg class="site-nav-icon site-nav-icon-simple" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      GitHub
+    </a>
+  </div>
+
+  <div class="container" id="top">
+    <header class="hero">
+      <div class="hero-art" aria-hidden="true">
+        <div class="code-rain" data-code-rain></div>
+        <div class="hero-term">
+          <div class="hero-term-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="hero-term-title">ais · resume</span>
+          </div>
+          <pre class="hero-term-body" data-hero-term></pre>
+        </div>
+      </div>
+      <div class="hero-content">
+        <img class="hero-mark" src="assets/openaiswitch-logo.png" alt="" width="72" height="72">
+        <span class="hero-eyebrow reveal" style="--d:0">Open source · the bridge between AI coding CLIs</span>
+        <h1 class="title reveal" style="--d:1">Stop rebuilding the story<br>every time you <em>switch</em>.</h1>
+        <p class="description reveal" style="--d:2">
+          Decisions, failed attempts, and next moves pile up inside one tool —
+          then die when you open another. <strong>openaiswitch</strong> turns a saved
+          session into a structured handoff the next CLI can pick up cold.
+          Command: <code>ais</code>.
+        </p>
+        <div class="hero-actions reveal" style="--d:3">
+          <a href="#install" class="hero-cta">Install <code>ais</code></a>
+          <a href="#trap" class="hero-cta hero-cta-ghost">See the trap</a>
+        </div>
+        <ul class="hero-trust reveal" style="--d:4">
+          <li>MIT open source</li>
+          <li>Single Go binary</li>
+          <li>5 AI coding CLIs</li>
+          <li>Provider stores stay read-only</li>
+        </ul>
+      </div>
+    </header>
+
+    <div class="rail">
+      <!-- The trap — enemy + mirror satisfaction (marketing: thick desire, not hype) -->
+      <section id="trap" class="trap" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">The Trap</h2>
+        </div>
+        <div class="trap-grid">
+          <article class="trap-card">
+            <h3>What dies on switch</h3>
+            <p>
+              The useful half of a session never travels: why a path was rejected,
+              which command proved the bug, what “done” actually means.
+              The next model starts from zero and you pay for discovery twice.
+            </p>
+          </article>
+          <article class="trap-card trap-card-hot">
+            <h3>What you want instead</h3>
+            <p>
+              Not a paste of the whole transcript. A <em>bridge</em>: objective,
+              decisions that must survive, evidence already earned, blockers, and
+              the next move — ready for a different CLI.
+            </p>
+          </article>
+        </div>
+        <p class="trap-path">
+          <span>Session stuck in one CLI</span>
+          <span class="trap-arrow" aria-hidden="true">→</span>
+          <span><code>ais resume</code></span>
+          <span class="trap-arrow" aria-hidden="true">→</span>
+          <span>Same tool: native resume · Other tool: detailed handoff</span>
+        </p>
+      </section>
+
+      <!-- Quick Start -->
+      <section id="install" class="quickstart" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">Quick Start</h2>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">install</span>
+            <div class="mode-switch" role="tablist" aria-label="Install method">
+              <button type="button" class="mode-btn active" data-mode="source" role="tab" aria-selected="true">From source</button>
+              <button type="button" class="mode-btn" data-mode="resume" role="tab" aria-selected="false">Resume</button>
+              <button type="button" class="mode-btn" data-mode="switch" role="tab" aria-selected="false">Switch tools</button>
+            </div>
+            <button type="button" class="copy-btn" data-copy>Copy</button>
+          </div>
+          <div class="code-content" id="install-code" role="tabpanel">
+            <div class="code-line"><span class="cmt"># requires Go 1.26+</span></div>
+            <div class="code-line"><span class="prompt">$</span> git clone https://github.com/reigpol/openaiswitch.git</div>
+            <div class="code-line"><span class="prompt">$</span> cd openaiswitch</div>
+            <div class="code-line"><span class="prompt">$</span> go install ./cmd/ais</div>
+            <div class="code-line"><span class="prompt">$</span> ais doctor</div>
+          </div>
+        </div>
+        <p class="quickstart-note">
+          Works on macOS and Linux. <code>ais</code> is a single Go binary — it does not install or replace
+          provider CLIs. Put <code>$(go env GOPATH)/bin</code> on your <code>PATH</code>, then run
+          <code>ais doctor</code> to see what is available on your machine.
+        </p>
+      </section>
+
+      <!-- Marquee strip (like OpenClaw shoutouts / integrations) -->
+      <section class="marquee-section" aria-label="Supported tools and capabilities" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">In The Loop</h2>
+        </div>
+        <div class="marquee-track">
+          <div class="marquee-row row-left">
+            <div class="marquee-group">
+              <span class="chip"><i></i>Claude Code</span>
+              <span class="chip"><i></i>Codex CLI</span>
+              <span class="chip"><i></i>OpenCode</span>
+              <span class="chip"><i></i>Antigravity</span>
+              <span class="chip"><i></i>Grok CLI</span>
+              <span class="chip"><i></i>Native resume</span>
+              <span class="chip"><i></i>Detailed handoff</span>
+              <span class="chip"><i></i>Secret redaction</span>
+            </div>
+            <div class="marquee-group" aria-hidden="true">
+              <span class="chip"><i></i>Claude Code</span>
+              <span class="chip"><i></i>Codex CLI</span>
+              <span class="chip"><i></i>OpenCode</span>
+              <span class="chip"><i></i>Antigravity</span>
+              <span class="chip"><i></i>Grok CLI</span>
+              <span class="chip"><i></i>Native resume</span>
+              <span class="chip"><i></i>Detailed handoff</span>
+              <span class="chip"><i></i>Secret redaction</span>
+            </div>
+          </div>
+          <div class="marquee-row row-right">
+            <div class="marquee-group">
+              <span class="chip chip-alt"><i></i>ais resume</span>
+              <span class="chip chip-alt"><i></i>ais doctor</span>
+              <span class="chip chip-alt"><i></i>ais status</span>
+              <span class="chip chip-alt"><i></i>.ai/openaiswitch/</span>
+              <span class="chip chip-alt"><i></i>handoff.md</span>
+              <span class="chip chip-alt"><i></i>Read-only stores</span>
+              <span class="chip chip-alt"><i></i>Model pickers</span>
+              <span class="chip chip-alt"><i></i>Effort levels</span>
+            </div>
+            <div class="marquee-group" aria-hidden="true">
+              <span class="chip chip-alt"><i></i>ais resume</span>
+              <span class="chip chip-alt"><i></i>ais doctor</span>
+              <span class="chip chip-alt"><i></i>ais status</span>
+              <span class="chip chip-alt"><i></i>.ai/openaiswitch/</span>
+              <span class="chip chip-alt"><i></i>handoff.md</span>
+              <span class="chip chip-alt"><i></i>Read-only stores</span>
+              <span class="chip chip-alt"><i></i>Model pickers</span>
+              <span class="chip chip-alt"><i></i>Effort levels</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- What it does -->
+      <section class="features" id="what" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">What It Does</h2>
+        </div>
+        <p class="section-lede features-lede">
+          Sell the path, not the fantasy: pick a session, stay or switch, land with
+          a handoff that still means something.
+        </p>
+        <div class="features-grid">
+          <article class="feature-card" style="--i:0">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <h3 class="feature-title">Discover sessions</h3>
+            <p class="feature-desc">Find conversations that belong to the current project across Claude Code, Codex, OpenCode, Antigravity, and Grok.</p>
+          </article>
+          <article class="feature-card" style="--i:1">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </div>
+            <h3 class="feature-title">Resume natively</h3>
+            <p class="feature-desc">Stay in the same CLI and reopen the provider’s real session. No handoff file. No summarization quota spent.</p>
+          </article>
+          <article class="feature-card" style="--i:2">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </div>
+            <h3 class="feature-title">Switch with a bridge</h3>
+            <p class="feature-desc">Changing tools builds a detailed handoff: objective, decisions, evidence, blockers, next move — not a raw transcript dump.</p>
+          </article>
+          <article class="feature-card" style="--i:3">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <h3 class="feature-title">Redact secrets</h3>
+            <p class="feature-desc">API keys, tokens, passwords, cookies, JWTs, credentials, and .env values are replaced before the handoff is written or copied.</p>
+          </article>
+          <article class="feature-card" style="--i:4">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3 class="feature-title">Read-only stores</h3>
+            <p class="feature-desc">Provider session stores stay untouched. ais never rewrites Claude, Codex, OpenCode, agy, or Grok history.</p>
+          </article>
+          <article class="feature-card" style="--i:5">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="m5 10 7-7 7 7"/><path d="m5 14 7 7 7-7"/></svg>
+            </div>
+            <h3 class="feature-title">Model-aware pickers</h3>
+            <p class="feature-desc">Choose the source model and only the reasoning levels that model actually supports — or pass flags for scripts.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Scroll-linked tools rail (OpenClaw integrations style) -->
+      <section class="tools-rail" id="tools-rail" data-tools-rail>
+        <div class="tools-rail-copy">
+          <div class="section-header">
+            <h2 class="section-title">Switch Across Tools</h2>
+          </div>
+          <p class="section-lede tools-rail-lede">
+            Drag the scrubber or scroll the page — the rail moves with you.
+            Five AI coding CLIs, one handoff format.
+          </p>
+        </div>
+
+        <div class="tools-railboard">
+          <div class="tools-track" data-dir="left">
+            <button type="button" class="tool-card" data-name="claude" style="--tool-color:#d4a574" aria-pressed="false">
+              <span class="tool-mono">CL</span>
+              <span class="tool-name">Claude Code</span>
+              <span class="tool-meta">claude --resume</span>
+            </button>
+            <button type="button" class="tool-card" data-name="codex" style="--tool-color:#6ea8ff" aria-pressed="false">
+              <span class="tool-mono">CX</span>
+              <span class="tool-name">Codex CLI</span>
+              <span class="tool-meta">codex resume</span>
+            </button>
+            <button type="button" class="tool-card" data-name="opencode" style="--tool-color:#9bda48" aria-pressed="false">
+              <span class="tool-mono">OC</span>
+              <span class="tool-name">OpenCode</span>
+              <span class="tool-meta">opencode --session</span>
+            </button>
+            <button type="button" class="tool-card" data-name="agy" style="--tool-color:#c084fc" aria-pressed="false">
+              <span class="tool-mono">AG</span>
+              <span class="tool-name">Antigravity</span>
+              <span class="tool-meta">agy --conversation</span>
+            </button>
+            <button type="button" class="tool-card" data-name="grok" style="--tool-color:#34f5e9" aria-pressed="false">
+              <span class="tool-mono">GR</span>
+              <span class="tool-name">Grok CLI</span>
+              <span class="tool-meta">grok --resume</span>
+            </button>
+            <button type="button" class="tool-card" data-name="resume" style="--tool-color:#9bda48" aria-pressed="false">
+              <span class="tool-mono">RS</span>
+              <span class="tool-name">Native resume</span>
+              <span class="tool-meta">same CLI · no handoff</span>
+            </button>
+            <button type="button" class="tool-card" data-name="handoff" style="--tool-color:#5ec640" aria-pressed="false">
+              <span class="tool-mono">HO</span>
+              <span class="tool-name">Detailed handoff</span>
+              <span class="tool-meta">bridge, not transcript</span>
+            </button>
+            <button type="button" class="tool-card" data-name="redact" style="--tool-color:#19d9cf" aria-pressed="false">
+              <span class="tool-mono">RD</span>
+              <span class="tool-name">Secret redaction</span>
+              <span class="tool-meta">keys · tokens · .env</span>
+            </button>
+          </div>
+          <div class="tools-track" data-dir="right">
+            <button type="button" class="tool-card" data-name="status" style="--tool-color:#9bda48" aria-pressed="false">
+              <span class="tool-mono">ST</span>
+              <span class="tool-name">ais status</span>
+              <span class="tool-meta">project · last hop</span>
+            </button>
+            <button type="button" class="tool-card" data-name="doctor" style="--tool-color:#34f5e9" aria-pressed="false">
+              <span class="tool-mono">DR</span>
+              <span class="tool-name">ais doctor</span>
+              <span class="tool-meta">bins · stores · git</span>
+            </button>
+            <button type="button" class="tool-card" data-name="model" style="--tool-color:#6ea8ff" aria-pressed="false">
+              <span class="tool-mono">MD</span>
+              <span class="tool-name">Model pickers</span>
+              <span class="tool-meta">source model IDs</span>
+            </button>
+            <button type="button" class="tool-card" data-name="effort" style="--tool-color:#d4a574" aria-pressed="false">
+              <span class="tool-mono">EF</span>
+              <span class="tool-name">Effort levels</span>
+              <span class="tool-meta">model-aware only</span>
+            </button>
+            <button type="button" class="tool-card" data-name="copy" style="--tool-color:#c084fc" aria-pressed="false">
+              <span class="tool-mono">CP</span>
+              <span class="tool-name">Handoff copy</span>
+              <span class="tool-meta">clipboard bridge</span>
+            </button>
+            <button type="button" class="tool-card" data-name="state" style="--tool-color:#5ec640" aria-pressed="false">
+              <span class="tool-mono">.AI</span>
+              <span class="tool-name">Project state</span>
+              <span class="tool-meta">.ai/openaiswitch/</span>
+            </button>
+            <button type="button" class="tool-card" data-name="readonly" style="--tool-color:#19d9cf" aria-pressed="false">
+              <span class="tool-mono">RO</span>
+              <span class="tool-name">Read-only stores</span>
+              <span class="tool-meta">never rewrite history</span>
+            </button>
+            <button type="button" class="tool-card" data-name="focus" style="--tool-color:#9bda48" aria-pressed="false">
+              <span class="tool-mono">FX</span>
+              <span class="tool-name">Focus text</span>
+              <span class="tool-meta">steer the next agent</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="tools-scrubber" role="slider" aria-label="Scrub tools rail" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <p class="tools-rail-hint" data-tools-hint>Scroll the page or drag the scrubber to move the rail.</p>
+      </section>
+
+      <!-- How the switch works -->
+      <section class="how" id="how" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">How The Switch Works</h2>
+        </div>
+        <div class="scenario-grid">
+          <article class="scenario-card">
+            <span class="scenario-kicker">Same CLI</span>
+            <h3>Native resume</h3>
+            <p>Reopens the provider’s official session command. No handoff file is created.</p>
+            <span class="scenario-meta">Quota: none</span>
+          </article>
+          <article class="scenario-card scenario-accent">
+            <span class="scenario-kicker">Other CLI</span>
+            <h3>Detailed handoff</h3>
+            <p>Redacts secrets, asks the source model to write a structured handoff, then launches the destination CLI.</p>
+            <span class="scenario-meta">Quota: source CLI</span>
+          </article>
+          <article class="scenario-card">
+            <span class="scenario-kicker">Handoff only</span>
+            <h3>Save &amp; copy</h3>
+            <p>Same cross-tool flow without launching another tool. Useful when you want the bridge on disk first.</p>
+            <span class="scenario-meta">Quota: source CLI</span>
+          </article>
+        </div>
+        <p class="pullquote">A handoff is a <em>bridge</em>, not a transcript.</p>
+        <p class="pullquote-sub">
+          You keep the craft: what was decided, what was proven, what remains.
+          You drop the noise: recursive summaries, secrets, and dead ends that only
+          matter to the model that already lived them.
+        </p>
+
+        <div class="anatomy">
+          <div class="anatomy-copy">
+            <h3 class="inline-title">What survives the switch</h3>
+            <ul>
+              <li>Objective and current truth</li>
+              <li>Decisions that must not be re-litigated</li>
+              <li>Evidence and verification already done</li>
+              <li>Completed work, active work, blockers</li>
+              <li>Next actions and relevant files</li>
+              <li>A bounded tail of recent conversation — without recursive old handoffs</li>
+            </ul>
+          </div>
+          <div class="file-tree">
+            <div class="file-tree-head">.ai/openaiswitch/</div>
+            <ul>
+              <li><code>handoff.md</code><span>bridge for the next CLI</span></li>
+              <li><code>session.md</code><span>redacted conversation</span></li>
+              <li><code>full.md</code><span>full compaction context</span></li>
+              <li><code>compact.md</code><span>compact between passes</span></li>
+              <li><code>decisions.md</code><span>durable decisions</span></li>
+              <li><code>state.json</code><span>last source / target</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tools -->
+      <section class="tools" id="tools" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">Supported Tools</h2>
+        </div>
+        <p class="section-lede">Five AI coding CLIs. One handoff format. Session stores are read-only.</p>
+        <div class="tools-table-wrap">
+          <table class="tools-table">
+            <thead>
+              <tr>
+                <th scope="col">Tool</th>
+                <th scope="col">Native resume</th>
+                <th scope="col">Session source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Claude Code</td>
+                <td><code>claude --resume &lt;id&gt;</code></td>
+                <td><code>~/.claude/projects/</code></td>
+              </tr>
+              <tr>
+                <td>Codex CLI</td>
+                <td><code>codex resume &lt;id&gt;</code></td>
+                <td><code>~/.codex/sessions/</code></td>
+              </tr>
+              <tr>
+                <td>OpenCode</td>
+                <td><code>opencode --session &lt;id&gt;</code></td>
+                <td>OpenCode SQLite database</td>
+              </tr>
+              <tr>
+                <td>Antigravity</td>
+                <td><code>agy --conversation &lt;id&gt;</code></td>
+                <td><code>~/.gemini/antigravity-cli/</code></td>
+              </tr>
+              <tr>
+                <td>Grok CLI</td>
+                <td><code>grok --resume &lt;id&gt;</code></td>
+                <td><code>~/.grok/sessions</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Security -->
+      <section class="security" id="security" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">Security</h2>
+        </div>
+        <div class="security-panel">
+          <p class="security-lede">
+            Before building a handoff, <code>ais</code> redacts likely API keys, OAuth and access tokens,
+            passwords, cookies, JWTs, credentials, and values loaded from <code>.env</code> files.
+          </p>
+          <ul>
+            <li>Redaction covers the handoff prompt, files under <code>.ai/openaiswitch/</code>, and clipboard text.</li>
+            <li>Selected conversations are read; provider session stores are never written by <code>ais</code>.</li>
+            <li>Handoffs are still local files. Review them before sharing outside your machine.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Commands -->
+      <section class="commands" id="commands" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">Commands</h2>
+        </div>
+        <div class="cmd-grid">
+          <article class="cmd-card">
+            <h3><code>ais resume</code></h3>
+            <p>Continue a saved session or create a detailed handoff. Optional focus text for the next agent.</p>
+          </article>
+          <article class="cmd-card">
+            <h3><code>ais status</code></h3>
+            <p>Show project root, last continuation, handoff status, and detected tools.</p>
+          </article>
+          <article class="cmd-card">
+            <h3><code>ais doctor</code></h3>
+            <p>Check provider binaries, session stores, Git, SQLite, and clipboard support.</p>
+          </article>
+          <article class="cmd-card">
+            <h3><code>ais update</code> · <code>version</code></h3>
+            <p>Update or inspect the <code>ais</code> binary only — never your provider CLIs.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Close: desire for craft, not scarcity theater -->
+      <section class="close" data-reveal>
+        <div class="section-header">
+          <h2 class="section-title">Why This Exists</h2>
+        </div>
+        <h2 class="close-title">Built for people who already live in more than one CLI.</h2>
+        <p class="close-copy">
+          If you only ever use one tool, you may not need <code>ais</code>.
+          If you hop — Claude for depth, Codex for speed, Grok for a second opinion —
+          the cost is not the model. The cost is re-teaching the work.
+          That is the problem this binary is for.
+        </p>
+        <div class="close-actions">
+          <a class="hero-cta" href="#install">Install from source</a>
+          <a class="hero-cta hero-cta-ghost" href="https://github.com/reigpol/openaiswitch" target="_blank" rel="noopener noreferrer">Star the repo when it earns it</a>
+        </div>
+        <p class="close-note">
+          No waitlist. No hosted model tax. MIT license. Your providers stay yours.
+        </p>
+      </section>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="footer-logo" href="#top">
+            <img src="assets/openaiswitch-logo.png" alt="" width="28" height="28">
+            openaiswitch
+          </a>
+          <p class="footer-credit">
+            Stop rebuilding the story every time you switch.
+            Open-source handoffs between AI coding CLIs — not another chat client.
+          </p>
+        </div>
+        <div class="footer-group">
+          <h3>Product</h3>
+          <a href="#trap">The trap</a>
+          <a href="#install">Install</a>
+          <a href="#how">How it works</a>
+          <a href="#tools">Tools</a>
+          <a href="#security">Security</a>
+        </div>
+        <div class="footer-group">
+          <h3>Project</h3>
+          <a href="https://github.com/reigpol/openaiswitch" target="_blank" rel="noopener noreferrer">Repository</a>
+          <a href="https://github.com/reigpol/openaiswitch/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+          <a href="https://github.com/reigpol/openaiswitch/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+          <a href="https://github.com/reigpol/openaiswitch/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </div>
+      </div>
+      <div class="footer-legal">
+        <span>openaiswitch · MIT</span>
+        <span>Inspired by the clarity of great open-source product sites.</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
