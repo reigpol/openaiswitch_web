@@ -626,7 +626,7 @@ html[data-theme="light"] .hero-term {
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  padding: 0 12px;
+  padding: 0 10px 0 12px;
   border-bottom: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
 }
@@ -636,6 +636,7 @@ html[data-theme="light"] .hero-term {
   height: 8px;
   border-radius: 50%;
   background: var(--border-subtle);
+  flex: none;
 }
 
 .hero-term-bar .dot:nth-child(1) {
@@ -654,9 +655,52 @@ html[data-theme="light"] .hero-term {
   font-size: 0.68rem;
   color: var(--text-muted);
   letter-spacing: 0.02em;
+  flex: none;
+}
+
+/* Sequence chrome: "2/7 · Choose target" + progress dots */
+.hero-term-step {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  max-width: 46%;
+  text-align: right;
+}
+
+.hero-term-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  margin-left: 6px;
+}
+
+.hero-term-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-term-dot.is-done {
+  background: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+}
+
+.hero-term-dot.is-active {
+  background: var(--accent-primary);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 22%, transparent);
 }
 
 .hero-term-body {
+  position: relative;
   margin: 0;
   min-height: 220px;
   padding: 12px 14px 14px;
@@ -666,7 +710,11 @@ html[data-theme="light"] .hero-term {
   color: var(--text-secondary);
   text-align: left;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   word-break: break-word;
+  /* Soft terminal fade when a frame is taller than the fixed window */
+  mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
 }
 
 .hero-term-body .t-prompt {
@@ -2096,8 +2144,8 @@ html[data-theme="light"] .site-footer {
 
   /* Stable hero terminal (same idea as desktop): fixed body height, art clip */
   .hero-art {
-    height: min(42vh, 340px);
-    min-height: 280px;
+    height: min(46vh, 380px);
+    min-height: 320px;
     padding: 20px 12px 8px;
     mask-image: linear-gradient(#0000 0%, #000 10% 96%, #0000 100%);
   }
@@ -2106,14 +2154,45 @@ html[data-theme="light"] .site-footer {
     width: min(560px, calc(100% - 1.25rem));
   }
 
+  .hero-term-bar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    min-height: 34px;
+    padding: 6px 10px;
+  }
+
+  .hero-term-title {
+    margin-left: 6px;
+  }
+
+  /* On narrow bars: step label on its own row under traffic lights */
+  .hero-term-step {
+    order: 5;
+    flex: 1 1 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-top: 1px;
+    text-align: left;
+    font-size: 0.6rem;
+    color: color-mix(in srgb, var(--accent-primary) 70%, var(--text-muted));
+  }
+
+  .hero-term-dots {
+    order: 4;
+    margin-left: auto;
+  }
+
   .hero-term-body {
-    height: 220px;
-    min-height: 220px;
-    max-height: 220px;
+    /* Fixed window — tall enough for common frames; excess fades, not jumps */
+    height: 248px;
+    min-height: 248px;
+    max-height: 248px;
     overflow: hidden;
-    font-size: 0.68rem;
-    line-height: 1.45;
-    padding: 10px 12px 12px;
+    font-size: 0.66rem;
+    line-height: 1.42;
+    padding: 10px 12px 16px;
+    mask-image: linear-gradient(#000 0%, #000 82%, transparent 100%);
+    -webkit-mask-image: linear-gradient(#000 0%, #000 82%, transparent 100%);
   }
 
   /* Light brand kiss under the fixed window — frog no longer rides content height */

@@ -135,11 +135,16 @@
   function startHeroTerminal(el) {
     if (!el) return;
 
+    const stepEl = document.querySelector("[data-hero-step]");
+    const dotsEl = document.querySelector("[data-hero-dots]");
+
     // Real interactive ais resume flow (menus + handoff + paste gate).
     // Frames are full terminal snapshots (how the TUI actually looks).
+    // `label` powers the step chip so the loop reads as a sequence, not random slides.
     const frames = [
       {
         hold: 2800,
+        label: "Pick session",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-dim">Sessions for /Users/pol/code/checkout</span>',
@@ -154,6 +159,7 @@
       },
       {
         hold: 2600,
+        label: "Choose target",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -169,6 +175,7 @@
       },
       {
         hold: 2200,
+        label: "Pick model",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -183,6 +190,7 @@
       },
       {
         hold: 2200,
+        label: "Reasoning",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -198,6 +206,7 @@
       {
         hold: 2400,
         spinner: true,
+        label: "Write handoff",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -206,6 +215,7 @@
       },
       {
         hold: 3200,
+        label: "Ready to paste",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -221,6 +231,7 @@
       },
       {
         hold: 4200,
+        label: "Handoff.md",
         lines: [
           '<span class="t-dim">// .ai/openaiswitch/handoff.md</span>',
           '<span class="t-ok">## Objective</span>',
@@ -237,6 +248,13 @@
       },
     ];
 
+    const total = frames.length;
+    if (dotsEl) {
+      dotsEl.innerHTML = frames
+        .map((_, i) => `<span class="hero-term-dot" data-i="${i}"></span>`)
+        .join("");
+    }
+
     const spinnerFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
     let frameIdx = 0;
     let spinIdx = 0;
@@ -245,6 +263,20 @@
     let last = 0;
     let visible = true;
     let stopped = false;
+
+    const paintChrome = () => {
+      const frame = frames[frameIdx];
+      const n = frameIdx + 1;
+      if (stepEl) {
+        stepEl.textContent = `${n}/${total} · ${frame.label}`;
+      }
+      if (dotsEl) {
+        dotsEl.querySelectorAll(".hero-term-dot").forEach((dot, i) => {
+          dot.classList.toggle("is-active", i === frameIdx);
+          dot.classList.toggle("is-done", i < frameIdx);
+        });
+      }
+    };
 
     const paint = () => {
       const frame = frames[frameIdx];
@@ -257,6 +289,7 @@
         )
         .join("\n");
       el.innerHTML = html + (reduceMotion ? "" : '<span class="t-cursor"></span>');
+      paintChrome();
     };
 
     if (reduceMotion) {
