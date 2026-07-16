@@ -142,10 +142,11 @@
     const prevBtn = document.querySelector("[data-hero-prev]");
     const nextBtn = document.querySelector("[data-hero-next]");
 
-    // Real ais resume walkthrough — slide deck of TUI snapshots.
+    // Short walkthrough: session → target → model → ready to paste.
+    // (Skip reasoning / write spinner / handoff.md — clearer story, fewer slides.)
     const frames = [
       {
-        hold: 3200,
+        hold: 3400,
         label: "Pick session",
         short: "Session",
         lines: [
@@ -161,7 +162,7 @@
         ],
       },
       {
-        hold: 3000,
+        hold: 3200,
         label: "Choose target",
         short: "Target",
         lines: [
@@ -178,7 +179,7 @@
         ],
       },
       {
-        hold: 2600,
+        hold: 3000,
         label: "Pick model",
         short: "Model",
         lines: [
@@ -194,34 +195,7 @@
         ],
       },
       {
-        hold: 2600,
-        label: "Reasoning",
-        short: "Reason",
-        lines: [
-          '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
-          '<span class="t-dim">Reasoning level for grok</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">Default</span>',
-          '<span class="t-dim">  high</span>',
-          '<span class="t-dim">  medium</span>',
-          '<span class="t-dim">  low</span>',
-          '<span class="t-hint">   the model\'s default level</span>',
-          '<span class="t-hint">  ↑/↓ move   enter select   q cancel</span>',
-        ],
-      },
-      {
-        hold: 2800,
-        spinner: true,
-        label: "Write handoff",
-        short: "Write",
-        lines: [
-          '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
-          '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
-          '<span class="t-accent" data-spin>⠼</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff  (2 passes; uses your grok quota)</span>',
-        ],
-      },
-      {
-        hold: 3400,
+        hold: 3800,
         label: "Ready to paste",
         short: "Paste",
         lines: [
@@ -237,24 +211,6 @@
           '<span class="t-accent">❯</span> <span class="t-cmd">Press Enter to open claude, then paste with Cmd+V / Ctrl+V ...</span>',
         ],
       },
-      {
-        hold: 4200,
-        label: "Handoff.md",
-        short: "Handoff",
-        lines: [
-          '<span class="t-dim">// .ai/openaiswitch/handoff.md</span>',
-          '<span class="t-ok">## Objective</span>',
-          '<span class="t-cmd">- Migrate sale_global_discount Odoo 17 → 18; keep original behavior.</span>',
-          '<span class="t-ok">## Important Details</span>',
-          '<span class="t-cmd">- Scope: only that addon dir · ref: /Users/pol/Documents/odoo/18.0</span>',
-          '<span class="t-cmd">- No internet · skill: odoo-migration · continue in claude</span>',
-          '<span class="t-ok">## Work State · Completed</span>',
-          '<span class="t-cmd">- Manifest 18.0.1.0.0 · tax engine 18 · logic in sale.order</span>',
-          '<span class="t-ok">## Next Move</span>',
-          '<span class="t-cmd">1. git status + git diff in the addon</span>',
-          '<span class="t-cmd">2. Grep for leftover v17 tax APIs</span>',
-        ],
-      },
     ];
 
     const total = frames.length;
@@ -268,20 +224,31 @@
     let visible = true;
     let stopped = false;
     let autoplay = !reduceMotion;
-    let resumeTimer = 0;
     let swapping = false;
 
     if (stepsEl) {
       stepsEl.innerHTML = frames
         .map(
           (f, i) =>
-            `<button type="button" class="hero-deck-step" role="tab" data-step="${i}" aria-selected="false" title="${f.label}"><span class="hero-deck-step-n">${i + 1}</span><span class="hero-deck-step-label">${f.short}</span></button>`
+            `<button type="button" class="hero-deck-step" role="tab" data-step="${i}" aria-selected="false" title="Step ${i + 1}: ${f.label}"><span class="hero-deck-step-n">${i + 1}</span><span class="hero-deck-step-label">${f.short}</span></button>`
         )
         .join("");
     }
 
     const stepButtons = () =>
       stepsEl ? Array.from(stepsEl.querySelectorAll(".hero-deck-step")) : [];
+
+    const scrollActiveChip = () => {
+      if (!stepsEl) return;
+      const btn = stepButtons()[frameIdx];
+      if (!btn) return;
+      const left =
+        btn.offsetLeft - stepsEl.clientWidth / 2 + btn.clientWidth / 2;
+      stepsEl.scrollTo({
+        left: Math.max(0, left),
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    };
 
     const paintChrome = () => {
       const frame = frames[frameIdx];
@@ -291,10 +258,9 @@
         btn.classList.toggle("is-active", on);
         btn.classList.toggle("is-done", i < frameIdx);
         btn.setAttribute("aria-selected", on ? "true" : "false");
-        if (on) {
-          btn.scrollIntoView({ inline: "center", block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
-        }
+        btn.tabIndex = on ? 0 : -1;
       });
+      scrollActiveChip();
       if (progressEl) {
         progressEl.style.transform = "scaleX(0)";
       }
@@ -332,7 +298,13 @@
 
     const goTo = (idx, { user = false, animate = true } = {}) => {
       const next = ((idx % total) + total) % total;
+      // Allow re-click of the active chip to restart its hold / progress.
       if (next === frameIdx && !user) return;
+      if (next === frameIdx && user) {
+        armHold();
+        autoplay = !reduceMotion;
+        return;
+      }
 
       const apply = () => {
         frameIdx = next;
@@ -341,18 +313,9 @@
         armHold();
         el.classList.remove("is-swap");
         swapping = false;
+        // Keep autoplay running after a manual jump so the story continues.
+        if (user) autoplay = !reduceMotion;
       };
-
-      if (user) {
-        autoplay = false;
-        window.clearTimeout(resumeTimer);
-        resumeTimer = window.setTimeout(() => {
-          if (!stopped) {
-            autoplay = !reduceMotion;
-            armHold();
-          }
-        }, 9000);
-      }
 
       if (!animate || reduceMotion) {
         apply();
@@ -403,6 +366,7 @@
     stepsEl?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-step]");
       if (!btn) return;
+      e.preventDefault();
       goTo(Number(btn.dataset.step), { user: true });
     });
 
@@ -416,20 +380,18 @@
       }
     });
 
-    // Pause autoplay while hovering the deck (desktop) so people can read.
-    deck?.addEventListener("pointerenter", () => {
+    // Pause autoplay while hovering the deck so people can read or pick a step.
+    const pauseAutoplay = () => {
       if (reduceMotion) return;
       autoplay = false;
-      window.clearTimeout(resumeTimer);
-    });
-    deck?.addEventListener("pointerleave", () => {
+    };
+    const resumeAutoplay = () => {
       if (reduceMotion) return;
-      window.clearTimeout(resumeTimer);
-      resumeTimer = window.setTimeout(() => {
-        autoplay = true;
-        armHold();
-      }, 1200);
-    });
+      autoplay = true;
+      armHold();
+    };
+    deck?.addEventListener("pointerenter", pauseAutoplay);
+    deck?.addEventListener("pointerleave", resumeAutoplay);
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) pause();
@@ -451,7 +413,6 @@
     return () => {
       stopped = true;
       pause();
-      window.clearTimeout(resumeTimer);
       io.disconnect();
     };
   }

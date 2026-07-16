@@ -494,20 +494,21 @@ html[data-theme="light"] .site-topbar {
   mask-image: linear-gradient(#000, #0000 90%);
 }
 
-.hero-art,
-.hero-content {
-  z-index: 1;
-  position: relative;
-}
-
 .hero-art {
+  z-index: 2;
+  position: relative;
   pointer-events: none;
   user-select: none;
   min-height: min(48vh, 420px);
-  padding: 28px 0 8px;
+  padding: 28px 0 12px;
   display: grid;
   place-items: center;
   overflow: visible;
+}
+
+.hero-content {
+  z-index: 1;
+  position: relative;
 }
 
 /* Interactive walkthrough wrapper (pointer events re-enabled) */
@@ -904,10 +905,11 @@ html[data-theme="light"] .hero-term {
 }
 
 .hero-content {
-  padding: 0 var(--space-6) 68px;
+  padding: 8px var(--space-6) 68px;
   flex-direction: column;
   align-items: center;
-  margin-top: -48px;
+  /* Clear the deck nav — never pull the frog over the terminal */
+  margin-top: 0;
   display: flex;
   position: relative;
 }
@@ -2332,16 +2334,24 @@ html[data-theme="light"] .site-footer {
     text-overflow: ellipsis;
   }
 
-  /* Light brand kiss under the deck — frog clear of terminal + steps */
+  /* Frog sits fully below terminal + step rail */
   .hero-content {
-    margin-top: 8px;
-    padding: 0 1.25rem 40px;
+    margin-top: 4px;
+    padding: 12px 1.25rem 40px;
   }
 
   .hero-mark {
     width: 64px;
     height: 64px;
     margin-bottom: 12px;
+  }
+
+  .hero-deck-nav {
+    gap: 6px;
+  }
+
+  .hero-deck-steps {
+    justify-content: flex-start;
   }
 
   .code-header {
