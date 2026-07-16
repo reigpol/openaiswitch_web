@@ -121,16 +121,29 @@
 
   <div class="container" id="top">
     <header class="hero">
-      <div class="hero-art" aria-hidden="true">
-        <div class="code-rain" data-code-rain></div>
-        <div class="hero-term">
-          <div class="hero-term-bar">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="hero-term-title">ais · resume</span>
-            <span class="hero-term-step" data-hero-step aria-live="polite"></span>
-            <span class="hero-term-dots" data-hero-dots aria-hidden="true"></span>
+      <div class="hero-art">
+        <div class="code-rain" data-code-rain aria-hidden="true"></div>
+        <div class="hero-deck" data-hero-deck>
+          <div class="hero-term" aria-roledescription="carousel" aria-label="ais resume walkthrough">
+            <div class="hero-term-bar">
+              <span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span>
+              <span class="hero-term-title">ais · resume</span>
+              <span class="hero-term-step" data-hero-step aria-live="polite"></span>
+            </div>
+            <div class="hero-term-progress" aria-hidden="true">
+              <span class="hero-term-progress-bar" data-hero-progress></span>
+            </div>
+            <pre class="hero-term-body" data-hero-term></pre>
           </div>
-          <pre class="hero-term-body" data-hero-term></pre>
+          <div class="hero-deck-nav">
+            <button type="button" class="hero-deck-btn" data-hero-prev aria-label="Previous step">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div class="hero-deck-steps" data-hero-steps role="tablist" aria-label="Walkthrough steps"></div>
+            <button type="button" class="hero-deck-btn" data-hero-next aria-label="Next step">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="hero-content">

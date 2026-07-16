@@ -503,11 +503,24 @@ html[data-theme="light"] .site-topbar {
 .hero-art {
   pointer-events: none;
   user-select: none;
-  height: min(48vh, 400px);
+  min-height: min(48vh, 420px);
+  padding: 28px 0 8px;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  mask-image: linear-gradient(#0000 0%, #000 14% 78%, #0000 100%);
+  overflow: visible;
+}
+
+/* Interactive walkthrough wrapper (pointer events re-enabled) */
+.hero-deck {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  user-select: text;
+  width: min(560px, calc(100% - 2rem));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
 }
 
 /* Token rain — code-like background, not abstract ASCII blobs */
@@ -603,7 +616,7 @@ html[data-theme="light"] .code-rain {
 .hero-term {
   position: relative;
   z-index: 2;
-  width: min(560px, calc(100% - 2rem));
+  width: 100%;
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--bg-page) 82%, transparent);
   backdrop-filter: blur(10px);
@@ -626,7 +639,7 @@ html[data-theme="light"] .hero-term {
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  padding: 0 10px 0 12px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
 }
@@ -658,45 +671,40 @@ html[data-theme="light"] .hero-term {
   flex: none;
 }
 
-/* Sequence chrome: "2/7 · Choose target" + progress dots */
 .hero-term-step {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.02em;
-  color: var(--text-muted);
+  color: color-mix(in srgb, var(--accent-primary) 72%, var(--text-muted));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  max-width: 46%;
+  max-width: 58%;
   text-align: right;
 }
 
-.hero-term-dots {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-  margin-left: 6px;
+/* Autoplay progress under the title bar */
+.hero-term-progress {
+  height: 2px;
+  background: color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  overflow: hidden;
 }
 
-.hero-term-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.hero-term-dot.is-done {
-  background: color-mix(in srgb, var(--accent-primary) 55%, transparent);
-}
-
-.hero-term-dot.is-active {
-  background: var(--accent-primary);
-  transform: scale(1.25);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 22%, transparent);
+.hero-term-progress-bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary),
+    color-mix(in srgb, var(--accent-secondary) 70%, var(--accent-primary))
+  );
+  transition: none;
+  will-change: transform;
 }
 
 .hero-term-body {
@@ -715,6 +723,131 @@ html[data-theme="light"] .hero-term {
   /* Soft terminal fade when a frame is taller than the fixed window */
   mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
   -webkit-mask-image: linear-gradient(#000 0%, #000 86%, transparent 100%);
+  transition: opacity 0.16s ease, transform 0.18s var(--ease-out);
+}
+
+.hero-term-body.is-swap {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* Slide controls under the terminal */
+.hero-deck-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.hero-deck-btn {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-page) 70%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.hero-deck-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-interactive);
+  border-color: color-mix(in srgb, var(--accent-primary) 35%, var(--border-subtle));
+}
+
+.hero-deck-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.hero-deck-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px;
+  scroll-snap-type: x proximity;
+}
+
+.hero-deck-steps::-webkit-scrollbar {
+  display: none;
+}
+
+.hero-deck-step {
+  flex: none;
+  scroll-snap-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.9rem;
+  padding: 0 0.55rem 0 0.35rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-page) 72%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hero-deck-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
+.hero-deck-step:hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, var(--border-subtle));
+}
+
+.hero-deck-step.is-done {
+  color: color-mix(in srgb, var(--accent-primary) 70%, var(--text-muted));
+}
+
+.hero-deck-step.is-done .hero-deck-step-n {
+  background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  color: var(--accent-primary);
+}
+
+.hero-deck-step.is-active {
+  color: var(--text-on-accent);
+  background: color-mix(in srgb, var(--accent-primary) 92%, var(--bg-page));
+  border-color: transparent;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 18px var(--logo-glow);
+}
+
+.hero-deck-step.is-active .hero-deck-step-n {
+  background: color-mix(in srgb, var(--text-on-accent) 18%, transparent);
+  color: var(--text-on-accent);
+}
+
+.hero-deck-step:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .hero-term-body .t-prompt {
@@ -2142,51 +2275,38 @@ html[data-theme="light"] .site-footer {
     grid-template-columns: 1fr;
   }
 
-  /* Stable hero terminal (same idea as desktop): fixed body height, art clip */
+  /* Stable hero terminal + slide rail under it */
   .hero-art {
-    height: min(46vh, 380px);
-    min-height: 320px;
-    padding: 20px 12px 8px;
-    mask-image: linear-gradient(#0000 0%, #000 10% 96%, #0000 100%);
+    height: auto;
+    min-height: 0;
+    padding: 16px 10px 6px;
+    mask-image: none;
+    overflow: visible;
   }
 
-  .hero-term {
-    width: min(560px, calc(100% - 1.25rem));
+  .hero-deck {
+    width: min(560px, calc(100% - 1rem));
+    gap: 8px;
   }
 
   .hero-term-bar {
-    flex-wrap: wrap;
-    row-gap: 4px;
     min-height: 34px;
-    padding: 6px 10px;
+    padding: 0 10px;
   }
 
   .hero-term-title {
     margin-left: 6px;
   }
 
-  /* On narrow bars: step label on its own row under traffic lights */
   .hero-term-step {
-    order: 5;
-    flex: 1 1 100%;
-    max-width: none;
-    margin-left: 0;
-    margin-top: 1px;
-    text-align: left;
-    font-size: 0.6rem;
-    color: color-mix(in srgb, var(--accent-primary) 70%, var(--text-muted));
-  }
-
-  .hero-term-dots {
-    order: 4;
-    margin-left: auto;
+    max-width: 55%;
+    font-size: 0.58rem;
   }
 
   .hero-term-body {
-    /* Fixed window — tall enough for common frames; excess fades, not jumps */
-    height: 248px;
-    min-height: 248px;
-    max-height: 248px;
+    height: 236px;
+    min-height: 236px;
+    max-height: 236px;
     overflow: hidden;
     font-size: 0.66rem;
     line-height: 1.42;
@@ -2195,9 +2315,26 @@ html[data-theme="light"] .site-footer {
     -webkit-mask-image: linear-gradient(#000 0%, #000 82%, transparent 100%);
   }
 
-  /* Light brand kiss under the fixed window — frog no longer rides content height */
+  .hero-deck-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  .hero-deck-step {
+    min-height: 2rem;
+    padding: 0 0.5rem 0 0.3rem;
+    font-size: 0.6rem;
+  }
+
+  .hero-deck-step-label {
+    max-width: 4.6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Light brand kiss under the deck — frog clear of terminal + steps */
   .hero-content {
-    margin-top: 0;
+    margin-top: 8px;
     padding: 0 1.25rem 40px;
   }
 

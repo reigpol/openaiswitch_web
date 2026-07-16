@@ -135,16 +135,19 @@
   function startHeroTerminal(el) {
     if (!el) return;
 
+    const deck = document.querySelector("[data-hero-deck]");
     const stepEl = document.querySelector("[data-hero-step]");
-    const dotsEl = document.querySelector("[data-hero-dots]");
+    const stepsEl = document.querySelector("[data-hero-steps]");
+    const progressEl = document.querySelector("[data-hero-progress]");
+    const prevBtn = document.querySelector("[data-hero-prev]");
+    const nextBtn = document.querySelector("[data-hero-next]");
 
-    // Real interactive ais resume flow (menus + handoff + paste gate).
-    // Frames are full terminal snapshots (how the TUI actually looks).
-    // `label` powers the step chip so the loop reads as a sequence, not random slides.
+    // Real ais resume walkthrough — slide deck of TUI snapshots.
     const frames = [
       {
-        hold: 2800,
+        hold: 3200,
         label: "Pick session",
+        short: "Session",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-dim">Sessions for /Users/pol/code/checkout</span>',
@@ -158,8 +161,9 @@
         ],
       },
       {
-        hold: 2600,
+        hold: 3000,
         label: "Choose target",
+        short: "Target",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -174,8 +178,9 @@
         ],
       },
       {
-        hold: 2200,
+        hold: 2600,
         label: "Pick model",
+        short: "Model",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -189,8 +194,9 @@
         ],
       },
       {
-        hold: 2200,
+        hold: 2600,
         label: "Reasoning",
+        short: "Reason",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -204,9 +210,10 @@
         ],
       },
       {
-        hold: 2400,
+        hold: 2800,
         spinner: true,
         label: "Write handoff",
+        short: "Write",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -214,8 +221,9 @@
         ],
       },
       {
-        hold: 3200,
+        hold: 3400,
         label: "Ready to paste",
+        short: "Paste",
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1h ago ·</span> <span class="t-cmd">Migrate sale_global_discount Odoo 17 → 18</span>',
@@ -232,6 +240,7 @@
       {
         hold: 4200,
         label: "Handoff.md",
+        short: "Handoff",
         lines: [
           '<span class="t-dim">// .ai/openaiswitch/handoff.md</span>',
           '<span class="t-ok">## Objective</span>',
@@ -249,36 +258,49 @@
     ];
 
     const total = frames.length;
-    if (dotsEl) {
-      dotsEl.innerHTML = frames
-        .map((_, i) => `<span class="hero-term-dot" data-i="${i}"></span>`)
-        .join("");
-    }
-
     const spinnerFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
     let frameIdx = 0;
     let spinIdx = 0;
+    let holdStart = 0;
     let holdUntil = 0;
     let raf = 0;
-    let last = 0;
+    let lastSpin = 0;
     let visible = true;
     let stopped = false;
+    let autoplay = !reduceMotion;
+    let resumeTimer = 0;
+    let swapping = false;
+
+    if (stepsEl) {
+      stepsEl.innerHTML = frames
+        .map(
+          (f, i) =>
+            `<button type="button" class="hero-deck-step" role="tab" data-step="${i}" aria-selected="false" title="${f.label}"><span class="hero-deck-step-n">${i + 1}</span><span class="hero-deck-step-label">${f.short}</span></button>`
+        )
+        .join("");
+    }
+
+    const stepButtons = () =>
+      stepsEl ? Array.from(stepsEl.querySelectorAll(".hero-deck-step")) : [];
 
     const paintChrome = () => {
       const frame = frames[frameIdx];
-      const n = frameIdx + 1;
-      if (stepEl) {
-        stepEl.textContent = `${n}/${total} · ${frame.label}`;
-      }
-      if (dotsEl) {
-        dotsEl.querySelectorAll(".hero-term-dot").forEach((dot, i) => {
-          dot.classList.toggle("is-active", i === frameIdx);
-          dot.classList.toggle("is-done", i < frameIdx);
-        });
+      if (stepEl) stepEl.textContent = `${frameIdx + 1}/${total} · ${frame.label}`;
+      stepButtons().forEach((btn, i) => {
+        const on = i === frameIdx;
+        btn.classList.toggle("is-active", on);
+        btn.classList.toggle("is-done", i < frameIdx);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+        if (on) {
+          btn.scrollIntoView({ inline: "center", block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+        }
+      });
+      if (progressEl) {
+        progressEl.style.transform = "scaleX(0)";
       }
     };
 
-    const paint = () => {
+    const paintBody = () => {
       const frame = frames[frameIdx];
       const glyph = spinnerFrames[spinIdx % spinnerFrames.length];
       const html = frame.lines
@@ -289,13 +311,58 @@
         )
         .join("\n");
       el.innerHTML = html + (reduceMotion ? "" : '<span class="t-cursor"></span>');
+    };
+
+    const paint = () => {
+      paintBody();
       paintChrome();
     };
 
-    if (reduceMotion) {
-      paint(0);
-      return () => {};
-    }
+    const setProgress = (ratio) => {
+      if (!progressEl) return;
+      const r = Math.max(0, Math.min(1, ratio));
+      progressEl.style.transform = `scaleX(${r})`;
+    };
+
+    const armHold = (now = performance.now()) => {
+      holdStart = now;
+      holdUntil = now + frames[frameIdx].hold;
+      setProgress(0);
+    };
+
+    const goTo = (idx, { user = false, animate = true } = {}) => {
+      const next = ((idx % total) + total) % total;
+      if (next === frameIdx && !user) return;
+
+      const apply = () => {
+        frameIdx = next;
+        spinIdx = 0;
+        paint();
+        armHold();
+        el.classList.remove("is-swap");
+        swapping = false;
+      };
+
+      if (user) {
+        autoplay = false;
+        window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(() => {
+          if (!stopped) {
+            autoplay = !reduceMotion;
+            armHold();
+          }
+        }, 9000);
+      }
+
+      if (!animate || reduceMotion) {
+        apply();
+        return;
+      }
+
+      swapping = true;
+      el.classList.add("is-swap");
+      window.setTimeout(apply, 160);
+    };
 
     const tick = (now) => {
       if (stopped || document.hidden || !visible) {
@@ -303,22 +370,18 @@
         return;
       }
 
-      if (!holdUntil) {
-        holdUntil = now + frames[frameIdx].hold;
-        paint();
-      }
+      if (!holdUntil) armHold(now);
 
-      if (frames[frameIdx].spinner && now - last >= 80) {
-        last = now;
+      if (!swapping && frames[frameIdx].spinner && now - lastSpin >= 80) {
+        lastSpin = now;
         spinIdx += 1;
-        paint();
+        paintBody();
       }
 
-      if (now >= holdUntil) {
-        frameIdx = (frameIdx + 1) % frames.length;
-        holdUntil = now + frames[frameIdx].hold;
-        spinIdx = 0;
-        paint();
+      if (autoplay && !swapping) {
+        const span = Math.max(1, holdUntil - holdStart);
+        setProgress((now - holdStart) / span);
+        if (now >= holdUntil) goTo(frameIdx + 1, { animate: true });
       }
 
       raf = requestAnimationFrame(tick);
@@ -326,7 +389,7 @@
 
     const start = () => {
       if (!raf && !stopped && !document.hidden && visible) {
-        holdUntil = 0;
+        if (!holdUntil) armHold();
         raf = requestAnimationFrame(tick);
       }
     };
@@ -334,6 +397,39 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
     };
+
+    prevBtn?.addEventListener("click", () => goTo(frameIdx - 1, { user: true }));
+    nextBtn?.addEventListener("click", () => goTo(frameIdx + 1, { user: true }));
+    stepsEl?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-step]");
+      if (!btn) return;
+      goTo(Number(btn.dataset.step), { user: true });
+    });
+
+    deck?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goTo(frameIdx - 1, { user: true });
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goTo(frameIdx + 1, { user: true });
+      }
+    });
+
+    // Pause autoplay while hovering the deck (desktop) so people can read.
+    deck?.addEventListener("pointerenter", () => {
+      if (reduceMotion) return;
+      autoplay = false;
+      window.clearTimeout(resumeTimer);
+    });
+    deck?.addEventListener("pointerleave", () => {
+      if (reduceMotion) return;
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        autoplay = true;
+        armHold();
+      }, 1200);
+    });
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) pause();
@@ -348,13 +444,14 @@
       },
       { rootMargin: "120px 0px" }
     );
-    io.observe(el);
+    io.observe(deck || el);
     paint();
     start();
 
     return () => {
       stopped = true;
       pause();
+      window.clearTimeout(resumeTimer);
       io.disconnect();
     };
   }
