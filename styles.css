@@ -2094,9 +2094,36 @@ html[data-theme="light"] .site-footer {
     grid-template-columns: 1fr;
   }
 
+  /* Keep the frog under the terminal — only a light brand kiss, no cover-up */
+  .hero-art {
+    height: auto;
+    min-height: 0;
+    padding: 20px 12px 8px;
+    mask-image: linear-gradient(#0000 0%, #000 10% 96%, #0000 100%);
+  }
+
+  .hero-term {
+    width: min(560px, calc(100% - 1.25rem));
+  }
+
+  .hero-term-body {
+    min-height: 0;
+    max-height: min(42vh, 280px);
+    overflow: hidden;
+    font-size: 0.68rem;
+    line-height: 1.45;
+    padding: 10px 12px 12px;
+  }
+
   .hero-content {
-    margin-top: -72px;
-    padding-bottom: 48px;
+    margin-top: -12px;
+    padding: 0 1.25rem 40px;
+  }
+
+  .hero-mark {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
   }
 
   .code-header {
