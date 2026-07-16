@@ -142,8 +142,8 @@
     const prevBtn = document.querySelector("[data-hero-prev]");
     const nextBtn = document.querySelector("[data-hero-next]");
 
-    // 4-step story: session → target → write → paste (matches live ais resume).
-    const sessionTitle = "Ship a mobile-first portfolio landing page";
+    // 4-step story: session → target → write → paste (light nerd humor, still real TUI).
+    const sessionTitle = "Stop rewriting the same story for every CLI";
     const sessionHead = `<span class="t-accent">❯</span> <span class="t-cmd">grok</span> <span class="t-dim">· 1d ago ·</span> <span class="t-cmd">${sessionTitle}</span>`;
     const frames = [
       {
@@ -153,12 +153,12 @@
         lines: [
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           '<span class="t-dim">Sessions for ~/code/openaiswitch</span>',
-          '<span class="t-hint">   ↑ more</span>',
-          '<span class="t-dim">  claude    12m ago      Fix OAuth callback race on Safari</span>',
-          '<span class="t-dim">  codex     41m ago      Rewrite migration notes for Odoo 18</span>',
-          '<span class="t-dim">  opencode  2h ago       Map which skills load per tool</span>',
-          '<span class="t-dim">  claude    5h ago       Draft security model for shared handoffs</span>',
-          '<span class="t-dim">  codex     9h ago       Recover a flaky CI flake in resume tests</span>',
+          '<span class="t-hint">   ↑ more (yes, you have a problem)</span>',
+          '<span class="t-dim">  claude    12m ago      Explain this regex I wrote at 2am</span>',
+          '<span class="t-dim">  codex     41m ago      It works on my machine™ — prove it in CI</span>',
+          '<span class="t-dim">  opencode  2h ago       Name this variable without using tmp2</span>',
+          '<span class="t-dim">  claude    5h ago       Is this a bug or a feature? (be honest)</span>',
+          '<span class="t-dim">  codex     9h ago       git blame the previous me</span>',
           `<span class="t-accent">❯</span> <span class="t-cmd">grok      1d ago       ${sessionTitle}</span>`,
           '<span class="t-hint">  ↑/↓ move   enter select   q cancel</span>',
         ],
@@ -176,7 +176,7 @@
           '<span class="t-dim">  Continue in OpenCode</span>',
           '<span class="t-dim">  Continue in Antigravity</span>',
           '<span class="t-dim">  Continue in Grok</span>',
-          '<span class="t-hint">   Open Claude Code and pick this conversation up there</span>',
+          '<span class="t-hint">   same plot, different co-author</span>',
           '<span class="t-hint">  ↑/↓ move   enter select   q cancel</span>',
         ],
       },
@@ -192,7 +192,7 @@
           '<span class="t-accent" data-spin>⠏</span> <span class="t-dim">grok (grok-4.5, high) is writing the detailed handoff</span>',
           '<span class="t-hint">   multi-pass · uses your grok quota</span>',
           '',
-          '<span class="t-dim">   packing decisions, failed attempts, and next moves…</span>',
+          '<span class="t-dim">   packing decisions, failed attempts, and “why not X?”…</span>',
         ],
       },
       {
@@ -203,7 +203,7 @@
           '<span class="t-prompt">$</span> <span class="t-cmd">ais resume</span>',
           sessionHead,
           '<span class="t-ok">✓</span> <span class="t-cmd">Handoff ready.</span>',
-          '<span class="t-ok">✓</span> <span class="t-cmd">Handoff copied to clipboard</span> <span class="t-dim">(pbcopy)</span>',
+          '<span class="t-ok">✓</span> <span class="t-cmd">Handoff copied to clipboard</span> <span class="t-dim">(pbcopy · no retyping lore)</span>',
           '',
           '<span class="t-bar">▌</span>  <span class="t-warn">⚠</span>  <span class="t-cmd">Before you start</span>',
           '<span class="t-bar">▌</span>  <span class="t-dim">Paste the handoff into claude as your first message,</span>',
